@@ -1,16 +1,11 @@
-import numpy as np
-import pandas as pd
-import os
-import pynwb as nwb
-import bisect
-from scipy import stats
-import pdb
-from scipy.interpolate import interp1d
 
-from . import np_utils
+import bisect
+import numpy as np
+import os
+from scipy.interpolate import interp1d
 import warnings
 
-import pdb
+from . import np_utils
 
 ### PERI-EVENTS UTILS ###
 
