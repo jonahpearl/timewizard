@@ -12,8 +12,7 @@ import warnings
 
 import pdb
 
-### PERI-EVENTS UTILS
-
+### PERI-EVENTS UTILS ###
 
 def get_aligned_traces(
     data_timestamps, data_values, event_timestamps, time_window, fs=None, ts_err_behav='error'
