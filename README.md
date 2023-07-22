@@ -41,3 +41,7 @@ TODO
 * allow mmap and lazy evaluation à la spike interface (and many others)
 * re-factor edge case handling -- still a bit buggy and the code is sloppy
 * 
+
+## Citataions
+Witch icons created by [Freepik - Flaticon](https://www.flaticon.com/free-icons/witch)
+
