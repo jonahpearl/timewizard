@@ -69,7 +69,7 @@ plt.text(0.707 + offset, -0.707, '7*pi/4')
 plt.xlabel('X')
 plt.ylabel('Y')
 
-```
+```python
 ![image](https://github.com/jonahpearl/timewizard/assets/68478436/ad76c805-eed9-45fa-a9aa-f69291b87b31)
 
 Note that the `event_times` do not have to correspond exactly to the times in `t`. They just have to be in the same units + reference frame.
