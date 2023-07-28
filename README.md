@@ -39,7 +39,7 @@ For now, clone the repo and use `pip install -e .` from inside the repo.
 
 ## Examples
 
-Extract the location of an animal at specific event times (i.e. vocalizations). No interpolation necessary! (Therefore faster, easier, and no fooling yourself into thinking you have more temporal resolution than you really do.)
+-- Extract the location of an animal at specific event times (i.e. vocalizations). No interpolation necessary! (Therefore faster, easier, and no fooling yourself into thinking you have more temporal resolution than you really do.)
 ```
 # Make up some data
 data_timestamps = np.arange(0,2*np.pi,0.033)  # eg, 30 Hz video
@@ -70,7 +70,7 @@ plt.ylabel('Y')
 Note that the `event_times` do not have to correspond exactly to the times in `t`. They just have to be in the same units + reference frame.
 
 
-Extract event onset and duration information from a series of booleans (e.g., extract bouts of fast running from a string of True/False's saying whether the animal was moving faster than some threshold):
+-- Extract event onset and duration information from a series of booleans (e.g., extract bouts of fast running from a string of True/False's saying whether the animal was moving faster than some threshold):
 ```
 np.random.seed(10)
 data_timestamps = np.arange(0, 10, 0.1)
@@ -93,7 +93,7 @@ plt.legend()
 ![image](https://github.com/jonahpearl/timewizard/assets/68478436/853de6d7-5a09-46d3-9296-1c2ca7451a8b)
 
 
-Find all instances of some event type (e.g. saccades) that fall within the bounds of some other event (e.g. bouts of fast running):
+-- Find all instances of some event type (e.g. saccades) that fall within the bounds of some other event (e.g. bouts of fast running):
 ```
 # say you have clean saccades from a recording
 saccade_df = pd.DataFrame({  
@@ -119,8 +119,6 @@ generator = tw.generate_perievent_slices(
 for _slice in generator:
     mags = saccade_df.loc[_slice, 'magnitude'].values
     running_df['avg_saccade_mag'] = np.mean(mags)
-
-plt.hist(running_df['avg_saccade_mag'])
 ```
 Again, note that the values in `all_saccade_times` doesn't have to correspond exactly to any values that show up elsewhere, so long as they're in the same units and reference frame.
 
