@@ -31,7 +31,12 @@ Timewizard also provides a convenient collection of cute charms (achem -- utilit
 Timewizard's core alignment functionality is modified from code originally written by the folks at the Allen Institute for their [Brain Observatory data](https://github.com/AllenInstitute/brain_observatory_utilities). Functions modified directly from their code are licensed under the Allen Institute License. All other code is provided under the MIT license.
 
 ## Why?
-Timewizard provides mid-level, modality-agnostic functions that help you work with timeseries. Everything is done with binary searches, meaning execution speed is very fast and doesn't require a GPU. You don't need to learn any new OO APIs. You just pass it your data, wave the wand, and get back some useful reorganization or information about your data. If you're looking for help running standard neuroscience analyses, you might check out [pynapple](https://github.com/pynapple-org/pynapple/tree/main).
+Timewizard provides mid-level, modality-agnostic functions that help you work with timeseries. 
+* Everything is done with binary searches, meaning execution speed is very fast and doesn't require a GPU.
+* No interpolation until you need it.
+* Never use for-loops to find temporal epochs and events ever again!
+
+If you're looking for help running standard neuroscience analyses, you might check out [pynapple](https://github.com/pynapple-org/pynapple/tree/main).
 
 ## Install
 
