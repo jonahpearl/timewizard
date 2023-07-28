@@ -45,7 +45,7 @@ For now, clone the repo and use `pip install -e .` from inside the repo.
 ## Examples
 
 -- Extract the location of an animal at specific event times (i.e. vocalizations). No interpolation necessary! (Therefore faster, easier, and no fooling yourself into thinking you have more temporal resolution than you really do.)
-python```
+```python
 # Make up some data
 data_timestamps = np.arange(0,2*np.pi,0.033)  # eg, 30 Hz video
 x = np.cos(t)  # say the animal is moving in a circle
@@ -76,7 +76,7 @@ Note that the `event_times` do not have to correspond exactly to the times in `t
 
 
 -- Extract event onset and duration information from a series of booleans (e.g., extract bouts of fast running from a string of True/False's saying whether the animal was moving faster than some threshold):
-```
+```python
 np.random.seed(10)
 data_timestamps = np.arange(0, 10, 0.1)
 speed = np.abs(np.sin(data_timestamps)) + tw.moving_average(np.random.normal(3, 3, data_timestamps.shape), 10, convolve_mode='same')
@@ -99,7 +99,7 @@ plt.legend()
 
 
 -- Find all instances of some event type (e.g. saccades) that fall within the bounds of some other event (e.g. bouts of fast running):
-```
+```python
 # say you have clean saccades from a recording
 saccade_df = pd.DataFrame({  
     'start_time': np.random.uniform(0, 1000, size=(1000,)),
@@ -129,7 +129,7 @@ Again, note that the values in `all_saccade_times` doesn't have to correspond ex
 
 
 -- Easy peri-stimulus heatmaps (it's a one liner!!)
-```
+```python
 # Make some fake signal with something to see
 np.random.seed(2)
 fs = 4
