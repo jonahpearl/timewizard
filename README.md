@@ -131,6 +131,7 @@ Again, note that the values in `all_saccade_times` doesn't have to correspond ex
 -- Easy peri-stimulus heatmaps (it's a one liner!!)
 ```
 # Make some fake signal with something to see
+np.random.seed(2)
 fs = 4
 t = np.arange(0, 1000, 1/fs)
 window = (-2,4)
@@ -152,6 +153,7 @@ plt.xlabel('Time from event (sec)')
 plt.ylabel('Event number')
 plt.colorbar(label='Signal')
 ```
+![image](https://github.com/jonahpearl/timewizard/assets/68478436/66da63a1-6148-40a5-9369-f4e0b28b0711)
 
 
 ## Roadmap
