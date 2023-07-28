@@ -39,7 +39,7 @@ For now, clone the repo and use `pip install -e .` from inside the repo.
 
 ## Examples
 
-Extract the location of an animal at specific event times (i.e. vocalizations):
+Extract the location of an animal at specific event times (i.e. vocalizations). No interpolation necessary! (Therefore faster, easier, and no fooling yourself into thinking you have more temporal resolution than you really do.)
 ```
 # Make up some data
 data_timestamps = np.arange(0,10,0.033)  # eg, 30 Hz video
@@ -48,7 +48,7 @@ y = np.sin(t)
 event_times = [np.pi, 7*np.pi/4, 30]
 
 # Map the animal's position to each event
-event_idx = tsu.index_of_nearest_value(data_timestamps, event_times)
+event_idx = tw.index_of_nearest_value(data_timestamps, event_times)
 event_idx = event_idx[event_idx != -1]  # remove -1's, which indicate event times that were outside of the range of the data
 event_locs = np.hstack([x[event_idx].reshape(-1,1), y[event_idx].reshape(-1,1)])
 
@@ -63,6 +63,24 @@ plt.axis('square')
 Note that the `event_times` do not have to correspond exactly to the times in `t`. They just have to be in the same units + reference frame.
 
 
+Extract event onset and duration information from a series of booleans (e.g., extract bouts of fast running from a string of True/False's saying whether the animal was moving faster than some threshold):
+```
+np.random.seed(10)
+data_timestamps = np.arange(0, 10, 0.1)
+speed = np.abs(np.sin(data_timestamps)) + tw.moving_average(np.random.normal(3, 3, data_timestamps.shape), 10, convolve_mode='same')
+threshold = 5
+speed_bool = speed > threshold
+onset_idx, onset_times = tw.get_peristim_times(speed_bool, data_timestamps)
+offset_idx, offset_times =  tw.get_peristim_times(speed_bool, data_timestamps, onsets_or_offsets='offsets')
+
+plt.plot(data_timestamps, speed)
+plt.hlines(threshold, *plt.xlim(), colors='k', linewidths=0.5, linestyles='--')
+yl = plt.ylim()
+for t0,tf in zip(onset_times, offset_times):
+    plt.plot([t0, tf], [yl[1], yl[1]], 'r-')
+```
+
+
 Find all instances of some event type (e.g. saccades) that fall within the bounds of some other event (e.g. bouts of fast running):
 ```
 # say you have clean saccades from a recording
@@ -72,7 +90,7 @@ saccade_df = pd.DataFrame({
 })
 saccade_df = saccade_df.sort_values(by='start_time').reset_index()
 
-# say you also have some fast running bouts
+# say you also have some fast running bouts from the previous example
 running_df = pd.DataFrame({
     'running_bout_starts': [300, 400, 500, 600],
 })
@@ -81,7 +99,7 @@ running_df['running_bout_ends'] = running_df['running_bout_starts'] + 5  # just 
 # Find average saccade magnitude inside each running bout
 all_saccade_times = saccade_df['start_time']
 assert tw.issorted(all_saccade_times)  # timestamps MUST be sorted for timewizard funcs to work, in general
-generator = tsu.generate_perievent_slices(
+generator = tw.generate_perievent_slices(
     all_saccade_times,
     event_timestamps=running_df['running_bout_starts'],
     event_end_timestamps=running_df['running_bout_ends']
