@@ -37,7 +37,28 @@ Timewizard provides mid-level, modality-agnostic functions that help you work wi
 For now, clone the repo and use `pip install -e .` from inside the repo.
 
 ## Examples
-TODO
+
+Extract the location of an animal at specific event times (i.e. vocalizations):
+```
+# Make up some data
+t = np.arange(0,10,0.033)  # eg, 30 Hz video
+x = np.cos(t)  # say the animal is moving in a circle
+y = np.sin(t)
+event_times = [np.pi, 7*np.pi/4]
+
+# Map the animal's position to each event
+event_idx = tsu.index_of_nearest_value(t, event_times)
+event_locs = np.hstack([x[event_idx].reshape(-1,1), y[event_idx].reshape(-1,1)])
+
+# Show the results
+plt.plot(x,y)
+plt.scatter(event_locs[:,0], event_locs[:,1])
+plt.xlim([-1,1])
+plt.ylim([-1,1])
+plt.axis('square')
+
+```
+NB: the `event_times` do not have to correspond exactly to the times in `t`. They just have to be in the same reference frame.
 
 
 ## Roadmap
