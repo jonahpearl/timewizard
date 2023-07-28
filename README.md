@@ -42,7 +42,7 @@ For now, clone the repo and use `pip install -e .` from inside the repo.
 Extract the location of an animal at specific event times (i.e. vocalizations). No interpolation necessary! (Therefore faster, easier, and no fooling yourself into thinking you have more temporal resolution than you really do.)
 ```
 # Make up some data
-data_timestamps = np.arange(0,10,0.033)  # eg, 30 Hz video
+data_timestamps = np.arange(0,2*np.pi,0.033)  # eg, 30 Hz video
 x = np.cos(t)  # say the animal is moving in a circle
 y = np.sin(t)
 event_times = [np.pi, 7*np.pi/4, 30]
@@ -58,8 +58,15 @@ plt.scatter(event_locs[:,0], event_locs[:,1])
 plt.xlim([-1,1])
 plt.ylim([-1,1])
 plt.axis('square')
+offset = 0.05
+plt.text(-1 + offset, 0, 'pi')
+plt.text(0.707 + offset, -0.707, '7*pi/4')
+plt.xlabel('X')
+plt.ylabel('Y')
 
 ```
+![image](https://github.com/jonahpearl/timewizard/assets/68478436/ad76c805-eed9-45fa-a9aa-f69291b87b31)
+
 Note that the `event_times` do not have to correspond exactly to the times in `t`. They just have to be in the same units + reference frame.
 
 
@@ -73,12 +80,17 @@ speed_bool = speed > threshold
 onset_idx, onset_times = tw.get_peristim_times(speed_bool, data_timestamps)
 offset_idx, offset_times =  tw.get_peristim_times(speed_bool, data_timestamps, onsets_or_offsets='offsets')
 
-plt.plot(data_timestamps, speed)
+plt.plot(data_timestamps, speed, label='Speed')
 plt.hlines(threshold, *plt.xlim(), colors='k', linewidths=0.5, linestyles='--')
 yl = plt.ylim()
-for t0,tf in zip(onset_times, offset_times):
-    plt.plot([t0, tf], [yl[1], yl[1]], 'r-')
+for iBout, (t0,tf) in enumerate(zip(onset_times, offset_times)):
+    label = 'Bouts' if iBout==0 else None
+    plt.plot([t0, tf], [yl[1], yl[1]], 'r-', label=label)
+plt.xlabel('Time (sec)')
+plt.ylabel('Running speed')
+plt.legend()
 ```
+![image](https://github.com/jonahpearl/timewizard/assets/68478436/853de6d7-5a09-46d3-9296-1c2ca7451a8b)
 
 
 Find all instances of some event type (e.g. saccades) that fall within the bounds of some other event (e.g. bouts of fast running):
