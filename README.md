@@ -146,14 +146,15 @@ event_times = np.hstack([event_times, 998])  # purposely add an event that will 
 ts, traces = tw.get_aligned_traces(t, signal, event_times, time_window=window, fs=fs)
 
 # Plot the data
-plt.imshow(traces, aspect='auto', interpolation='none', cmap='magma')
+plt.imshow(traces, aspect='auto', interpolation='none', cmap='coolwarm')
 plt.vlines((0 - window[0]) * fs, *plt.ylim(), "w", linewidths=1, zorder=np.inf)
 tw.xticks_from_timestamps(ts, interval=2, ax=plt.gca())
 plt.xlabel('Time from event (sec)')
 plt.ylabel('Event number')
 plt.colorbar(label='Signal')
 ```
-![image](https://github.com/jonahpearl/timewizard/assets/68478436/66da63a1-6148-40a5-9369-f4e0b28b0711)
+![image](https://github.com/jonahpearl/timewizard/assets/68478436/757d8ba8-b8d3-42b1-a700-9ffd2b6038fe)
+
 
 
 ## Roadmap
