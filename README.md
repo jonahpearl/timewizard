@@ -128,6 +128,31 @@ for _slice in generator:
 Again, note that the values in `all_saccade_times` doesn't have to correspond exactly to any values that show up elsewhere, so long as they're in the same units and reference frame.
 
 
+-- Easy peri-stimulus heatmaps (it's a one liner!!)
+```
+# Make some fake signal with something to see
+fs = 4
+t = np.arange(0, 1000, 1/fs)
+window = (-2,4)
+event_times = np.array([0, 100, 400, 600])  # requested window for first event will be before bounds of data
+signal = np.zeros_like(t, dtype='float')
+for t0 in event_times:
+    _slice = slice(int(t0*fs), int(t0*fs + (window[1]-1)*fs))
+    signal[_slice] += np.random.normal(0, 3, size=((window[1]-1)*fs))
+event_times = np.hstack([event_times, 998])  # purposely add an event that will extend after the bounds of the data
+
+# Get aligned traces
+ts, traces = tw.get_aligned_traces(t, signal, event_times, time_window=window, fs=fs)
+
+# Plot the data
+plt.imshow(traces, aspect='auto', interpolation='none', cmap='magma')
+plt.vlines((0 - window[0]) * fs, *plt.ylim(), "w", linewidths=1, zorder=np.inf)
+tw.xticks_from_timestamps(ts, interval=2, ax=plt.gca())
+plt.xlabel('Time from event (sec)')
+plt.ylabel('Event number')
+plt.colorbar(label='Signal')
+```
+
 
 ## Roadmap
 * allow mmap and lazy evaluation à la spike interface (and many others)
