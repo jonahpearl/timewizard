@@ -45,7 +45,7 @@ For now, clone the repo and use `pip install -e .` from inside the repo.
 ## Examples
 
 -- Extract the location of an animal at specific event times (i.e. vocalizations). No interpolation necessary! (Therefore faster, easier, and no fooling yourself into thinking you have more temporal resolution than you really do.)
-```
+python```
 # Make up some data
 data_timestamps = np.arange(0,2*np.pi,0.033)  # eg, 30 Hz video
 x = np.cos(t)  # say the animal is moving in a circle
@@ -69,7 +69,7 @@ plt.text(0.707 + offset, -0.707, '7*pi/4')
 plt.xlabel('X')
 plt.ylabel('Y')
 
-```python
+```
 ![image](https://github.com/jonahpearl/timewizard/assets/68478436/ad76c805-eed9-45fa-a9aa-f69291b87b31)
 
 Note that the `event_times` do not have to correspond exactly to the times in `t`. They just have to be in the same units + reference frame.
