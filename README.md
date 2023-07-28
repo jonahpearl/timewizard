@@ -4,6 +4,11 @@
 
 Timewizard is a Python library that makes it easier to work with timeseries data, especially in the context of neuroscience. 
 
+To use timewizard, your data **must** meet the following minimal (and hopefully straightforward) standards:
+* have time along the 0-th axis
+* be sorted along the time axis
+* be convertible to numpy arrays
+
 Timewizard **can** help you cast the following spells:
 * align data sampled at different rates
 * align matched events across two different data streams
@@ -22,10 +27,6 @@ Timewizard also provides a convenient collection of cute charms (achem -- utilit
 * check if an array is sorted
 * describe runs of values in your data
 * hierarchically cluster a distance or correlation matrix
-
-To use timewizard, your data **must** meet the following minimal (and hopefully straightforward) standards:
-* have time along the 0-th axis
-* be sorted along the time axis
 
 Timewizard's core alignment functionality is modified from code originally written by the folks at the Allen Institute for their [Brain Observatory data](https://github.com/AllenInstitute/brain_observatory_utilities). Functions modified directly from their code are licensed under the Allen Institute License. All other code is provided under the MIT license.
 
