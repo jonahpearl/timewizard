@@ -41,13 +41,14 @@ For now, clone the repo and use `pip install -e .` from inside the repo.
 Extract the location of an animal at specific event times (i.e. vocalizations):
 ```
 # Make up some data
-t = np.arange(0,10,0.033)  # eg, 30 Hz video
+data_timestamps = np.arange(0,10,0.033)  # eg, 30 Hz video
 x = np.cos(t)  # say the animal is moving in a circle
 y = np.sin(t)
-event_times = [np.pi, 7*np.pi/4]
+event_times = [np.pi, 7*np.pi/4, 30]
 
 # Map the animal's position to each event
-event_idx = tsu.index_of_nearest_value(t, event_times)
+event_idx = tsu.index_of_nearest_value(data_timestamps, event_times)
+event_idx = event_idx[event_idx != -1]  # remove -1's, which indicate event times that were outside of the range of the data
 event_locs = np.hstack([x[event_idx].reshape(-1,1), y[event_idx].reshape(-1,1)])
 
 # Show the results
@@ -58,7 +59,40 @@ plt.ylim([-1,1])
 plt.axis('square')
 
 ```
-NB: the `event_times` do not have to correspond exactly to the times in `t`. They just have to be in the same reference frame.
+Note that the `event_times` do not have to correspond exactly to the times in `t`. They just have to be in the same units + reference frame.
+
+
+Find all instances of some event type (e.g. saccades) that fall within the bounds of some other event (e.g. bouts of fast running):
+```
+# say you have clean saccades from a recording
+saccade_df = pd.DataFrame({  
+    'start_time': np.random.uniform(0, 1000, size=(1000,)),
+    'magnitude': np.random.uniform(0, 10, size=(1000,))
+})
+saccade_df = saccade_df.sort_values(by='start_time').reset_index()
+
+# say you also have some fast running bouts
+running_df = pd.DataFrame({
+    'running_bout_starts': [300, 400, 500, 600],
+})
+running_df['running_bout_ends'] = running_df['running_bout_starts'] + 5  # just making this simple...
+
+# Find average saccade magnitude inside each running bout
+all_saccade_times = saccade_df['start_time']
+assert tw.issorted(all_saccade_times)  # timestamps MUST be sorted for timewizard funcs to work, in general
+generator = tsu.generate_perievent_slices(
+    all_saccade_times,
+    event_timestamps=running_df['running_bout_starts'],
+    event_end_timestamps=running_df['running_bout_ends']
+)
+for _slice in generator:
+    mags = saccade_df.loc[_slice, 'magnitude'].values
+    running_df['avg_saccade_mag'] = np.mean(mags)
+
+plt.hist(running_df['avg_saccade_mag'])
+```
+Again, note that the values in `all_saccade_times` doesn't have to correspond exactly to any values that show up elsewhere, so long as they're in the same units and reference frame.
+
 
 
 ## Roadmap
