@@ -1,15 +1,12 @@
 import numpy as np
-import os
-from scipy.interpolate import interp1d
 import warnings
 
-from .. import np_utils
-
-
+from .. import util as twu
 
 # This module contains functions that are modified from the Allen Institute's Mindscope Utilities (now Brain Observatory Utils).
 # The Allen's code is licensed under the Allen Institute Software License, which allows modification and redistribution of the code
 # so long as the license is included. The license is included in this folder, to make explicit which code in timewizard is derived from the Allen's code.
+
 
 def time_from_last(timestamps, event_times, side="right", ):
     """
@@ -29,7 +26,7 @@ def time_from_last(timestamps, event_times, side="right", ):
         time_from_last_event (np.array): the time from the last event for each timestamp
     """
 
-    timestamps, event_times = np_utils.castnp(timestamps, event_times)
+    timestamps, event_times = twu.castnp(timestamps, event_times)
     
     last_event_index = np.searchsorted(a=event_times, v=timestamps, side=side) - 1
     time_from_last_event = timestamps - event_times[last_event_index]
@@ -63,7 +60,7 @@ def index_of_nearest_value(data_timestamps, event_timestamps, boundary_tol=None)
         Event times outside of the bounds are given an index of -1.
         (NB, of course -1 is still a valid index in Python! But there is no integer nan, so -1 is the best way we have to say "invalid intger")
     """
-    data_timestamps, event_timestamps = np_utils.castnp(data_timestamps, event_timestamps)
+    data_timestamps, event_timestamps = twu.castnp(data_timestamps, event_timestamps)
 
     insertion_ind = np.searchsorted(data_timestamps, event_timestamps)
 
@@ -146,7 +143,7 @@ def generate_perievent_slices(
 
     """
 
-    data_timestamps, event_timestamps, time_window, event_end_timestamps = np_utils.castnp(
+    data_timestamps, event_timestamps, time_window, event_end_timestamps = twu.castnp(
         data_timestamps, event_timestamps, time_window, event_end_timestamps
     )
 
