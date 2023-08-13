@@ -1,14 +1,15 @@
 # import pytest
 import numpy as np
-import moseq_fo as mf
-import moseq_fo.util.timeseries_utils as tsu
+import timewizard.timeseries_utils as tsu
+import timewizard.np_utils as npu
 
 
 def test_issorted():
-    assert mf.util.np_utils.issorted(np.arange(10))
-    assert not mf.util.np_utils.issorted(np.array([0, 1, 2, 1]))
+    assert npu.issorted(np.arange(10))
+    assert not npu.issorted(np.array([0, 1, 2, 1]))
 
-def test_get_individual_aligned_traces():
+
+def test_perievent_traces():
     timestamps = np.linspace(0, 100, 1001)
     data = np.sin(timestamps)
     event_timestamps = np.array([20, 30, 50])
@@ -17,7 +18,7 @@ def test_get_individual_aligned_traces():
     end_idx = np.where(timestamps == 21)[0][0]
 
     # Test non-fs version
-    times, traces = tsu.get_aligned_traces(
+    times, traces = tsu.perievent_traces(
         timestamps, data, event_timestamps, time_window, fs=None
     )
     np.testing.assert_allclose(traces[0], data[start_idx:end_idx])
@@ -25,19 +26,19 @@ def test_get_individual_aligned_traces():
     assert len(traces[0]) == 20
 
     # Test fs version
-    times, traces = tsu.get_aligned_traces(
+    times, traces = tsu.perievent_traces(
         timestamps, data, event_timestamps, time_window, fs=10
     )
     np.testing.assert_allclose(traces[0, :], data[start_idx:end_idx])
     assert traces.shape == (3, 20)
 
 
-def test_get_aligned_traces_multidim():
+def test_get_perievent_traces_multidim():
     timestamps = np.arange(4)
     data = np.arange(4**4).reshape((4,4,4,4))
     event_timestamps = [2]
     window = [-1,1]
-    idx, traces = tsu.get_aligned_traces(timestamps, data, event_timestamps, window, fs=1)
+    idx, traces = tsu.perievent_traces(timestamps, data, event_timestamps, window, fs=1)
     np.testing.assert_allclose(traces[0,:], data[1:3,:])
 
 
@@ -54,37 +55,48 @@ def test_index_of_nearest_value():
     assert np.all(answer == tsu.index_of_nearest_value(timestamps, event_timestamps))
 
 
-def get_times_within_event_windows():
+def test_perievent_events():
     # Simple test
-    data_timestamps = np.arange(0, 100, 5)
+    discrete_timestamps = np.arange(0, 100, 5)
     event_timestamps = [20, 50]
     time_window = (-5, 5)
-    times = tsu.get_times_in_perievent_windows(
-        data_timestamps, event_timestamps, time_window
+    times = tsu.perievent_events(
+        discrete_timestamps,
+        event_timestamps,
+        time_window,
+        zeroed=False
     )
-    assert times[0] == [15, 20, 25]
+    assert np.all(times[0] == [15, 20, 25])
+
+    times = tsu.perievent_events(
+        discrete_timestamps,
+        event_timestamps,
+        time_window,
+        zeroed=True
+    )
+    assert np.all(times[0] == [-5, 0, 5])
 
 
-def test_get_peristim_times():
+def test_find_perievent_times():
     o = np.array([0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0])
     t = np.arange(o.shape[0])
 
-    i_on, t_on = tsu.get_peristim_times(
-        o, t, mode="raw", onsets_or_offsets="onsets"
+    i_on, t_on = tsu.find_perievent_times(
+        o, t, mode="raw", kind="onsets"
     )
-    i_off, t_off = tsu.get_peristim_times(
-        o, t, mode="raw", onsets_or_offsets="offsets"
+    i_off, t_off = tsu.find_perievent_times(
+        o, t, mode="raw", kind="offsets"
     )
     assert np.all(i_on == np.array([3, 6, 15]))
     assert np.all(i_off == np.array([5, 8, 16]))
     assert np.all(t_on == np.array([3, 6, 15]))
     assert np.all(t_off == np.array([5, 8, 16]))
 
-    i_on, t_on = tsu.get_peristim_times(
-        o, t, mode="initial_onset", block_min_spacing=3, onsets_or_offsets="onsets"
+    i_on, t_on = tsu.find_perievent_times(
+        o, t, mode="initial_onset", block_min_spacing=3, kind="onsets"
     )
-    i_off, t_off = tsu.get_peristim_times(
-        o, t, mode="initial_onset", block_min_spacing=3, onsets_or_offsets="offsets"
+    i_off, t_off = tsu.find_perievent_times(
+        o, t, mode="initial_onset", block_min_spacing=3, kind="offsets"
     )
     assert np.all(i_on == np.array([3, 15]))
     assert np.all(i_off == np.array([8, 16]))
@@ -92,22 +104,23 @@ def test_get_peristim_times():
     assert np.all(t_off == np.array([8, 16]))
 
 
-def test_get_peristim_times_boundaries():
-    o = np.array([1,1,0,0,0,1,1,0,0,1,0,0,1,1])
+def test_find_perievent_times_boundaries():
+    o = np.array([1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1])
     t = np.arange(o.shape[0])
 
-    i_on, t_on = tsu.get_peristim_times(
-        o, t, mode="raw", onsets_or_offsets="onsets"
+    i_on, t_on = tsu.find_perievent_times(
+        o, t, mode="raw", kind="onsets"
     )
 
-    i_off, t_off = tsu.get_peristim_times(
-        o, t, mode="raw", onsets_or_offsets="offsets"
+    i_off, t_off = tsu.find_perievent_times(
+        o, t, mode="raw", kind="offsets"
     )
 
     assert np.all(i_on == np.array([0, 5, 9, 12]))
     assert np.all(i_off == np.array([2, 7, 10, 13]))
     assert np.all(t_on == np.array([0, 5, 9, 12]))
     assert np.all(t_off == np.array([2, 7, 10, 13]))
+
 
 def test_mutually_nearest_pts():
     t = np.arange(10)

@@ -1,10 +1,7 @@
 # import pytest
 import numpy as np
-import moseq_fo as mf
-import moseq_fo.util.np_utils as npu
+import timewizard.np_utils as npu
 import unittest
-import unittest
-import pdb
 
 
 class TestNpUtils(unittest.TestCase):
@@ -17,7 +14,7 @@ class TestNpUtils(unittest.TestCase):
         a = ["a", "b", "c"]
         b = [1, 2, 3]
 
-        (a1,) = npu.castnp(a)  # note unpacking of 1-item tuple
+        a1 = npu.castnp(a)  # note unpacking of 1-item tuple
         a2 = np.array(a)
         self.assertTrue(np.all(a1 == a2))
 
