@@ -41,8 +41,16 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide.html">Core Principles</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../perievent.html">perievent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../allenbrainobs.html">Allen Brain Observatory Utilities</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -104,13 +112,13 @@
 <span class="sd">            The sampling rate of the data, in Hz.</span>
 <span class="sd">            If None, data are not assumed to be regularly sampled, and things are handled more carefully (eg traces will be a nested list instead of a matrix).</span>
 
-<span class="sd">        # TODO: replace this and other similar arguments with global settings that dictate how much double-checking tw should do of the user&#39;s inputs</span>
-<span class="sd">        # This global setting can also obv be overridden with kwargs to specific functions.</span>
 <span class="sd">        ts_err_behav: str, default=&quot;error&quot;</span>
 <span class="sd">            Throw an error if fs but timestamps diffs not all equal.</span>
 <span class="sd">            Else if &quot;warn&quot;, report a warning but keep going.</span>
+<span class="sd">            # TODO: replace this and other similar arguments with global settings that dictate how much double-checking tw should do of the user&#39;s inputs</span>
+<span class="sd">            # This global setting can also obv be overridden with kwargs to specific functions.</span>
 
-<span class="sd">    Returns:</span>
+<span class="sd">    Returns</span>
 <span class="sd">    --------</span>
 <span class="sd">        times: array of shape (fs * (time_window[1] - time_window[0]),)</span>
 <span class="sd">            The timestamps for the peri-event traces.</span>
@@ -303,10 +311,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    data_boolean : array of size (N,) and type bool or signed integers.</span>
 <span class="sd">        Array of 0s/1s indicating stimulus state (0: OFF, 1: ON).</span>
-<span class="sd">        Also acceptable: array with runs of any integer values, interspersed with zeros.</span>
-<span class="sd">            OK: [0,0,1,1,1,0,0,0,3,3,3,0,0,0,...]</span>
-<span class="sd">        Not acceptable: mixing values within a run.</span>
-<span class="sd">            NOT OK: [0,0,0,1,2,3,0,0,0,...]</span>
+<span class="sd">        Also acceptable: array with runs of any integer values, interspersed with zeros: `[0,0,1,1,1,0,0,0,3,3,3,0,0,0,...]`</span>
+<span class="sd">        Not acceptable: mixing values within a run: `~[0,0,0,1,2,3,0,0,0,...]~`</span>
 
 <span class="sd">    data_timestamps : array-like of size (N,)</span>
 <span class="sd">        Array of timestamps for the data.</span>

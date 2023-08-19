@@ -20,7 +20,9 @@
         <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Allen Brain Observatory Utilities" href="allenbrainobs.html" />
+    <link rel="prev" title="Core Principles" href="user_guide.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,6 +46,18 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">Core Principles</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">perievent</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#timewizard.perievent.perievent_traces"><code class="docutils literal notranslate"><span class="pre">perievent_traces()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timewizard.perievent.perievent_events"><code class="docutils literal notranslate"><span class="pre">perievent_events()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timewizard.perievent.find_perievent_times"><code class="docutils literal notranslate"><span class="pre">find_perievent_times()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timewizard.perievent.chunk_events"><code class="docutils literal notranslate"><span class="pre">chunk_events()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="allenbrainobs.html">Allen Brain Observatory Utilities</a></li>
 </ul>
 
         </div>
@@ -103,31 +117,25 @@ The output will be sorted in the same order as event_timestamps.</p></li>
 <li><p><strong>time_window</strong> (<em>tuple</em><em> (</em><em>start_offset</em><em>, </em><em>end_offset</em><em>)</em><em>, </em><em>in the same time base as the data.</em>) – For example, (-2,5) with times in seconds will use a window from 2 seconds before to 5 seconds after each event timestamp.</p></li>
 <li><p><strong>fs</strong> (<em>int</em><em>, </em><em>default=None</em>) – The sampling rate of the data, in Hz.
 If None, data are not assumed to be regularly sampled, and things are handled more carefully (eg traces will be a nested list instead of a matrix).</p></li>
-<li><p><strong>TODO</strong> (<em>#</em>) – </p></li>
-<li><p><strong>functions.</strong> (<em># This global setting can also obv be overridden with kwargs to specific</em>) – </p></li>
 <li><p><strong>ts_err_behav</strong> (<em>str</em><em>, </em><em>default=&quot;error&quot;</em>) – Throw an error if fs but timestamps diffs not all equal.
-Else if “warn”, report a warning but keep going.</p></li>
+Else if “warn”, report a warning but keep going.
+# TODO: replace this and other similar arguments with global settings that dictate how much double-checking tw should do of the user’s inputs
+# This global setting can also obv be overridden with kwargs to specific functions.</p></li>
 </ul>
 </dd>
-</dl>
-<section id="returns">
-<h2>Returns:<a class="headerlink" href="#returns" title="Permalink to this heading"></a></h2>
-<blockquote>
-<div><dl class="simple">
-<dt>times: array of shape (fs * (time_window[1] - time_window[0]),)</dt><dd><p>The timestamps for the peri-event traces.
-If fs is None, this is a nested list of timestamps for each event.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>times</strong> (<em>array of shape (fs * (time_window[1] - time_window[0]),)</em>) – The timestamps for the peri-event traces.
+If fs is None, this is a nested list of timestamps for each event.</p></li>
+<li><p><strong>traces</strong> (<em>array of shape (M, fs * (time_window[1] - time_window[0]), …)</em>) – The aligned peri-event data.
+If fs is None, this is a list of arrays with data for each event</p></li>
+</ul>
+</p>
 </dd>
-<dt>traces<span class="classifier">array of shape (M, fs * (time_window[1] - time_window[0]), …)</span></dt><dd><p>The aligned peri-event data.
-If fs is None, this is a list of arrays with data for each event</p>
-</dd>
-</dl>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">raises ValueError:<span class="colon">:</span></dt>
-<dd class="field-odd"><p>If size of data_timestamps and data_vals don’t match.</p>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError:</strong> – If size of data_timestamps and data_vals don’t match.</p>
 </dd>
 </dl>
-</section>
 </dd></dl>
 
 <dl class="py function">
@@ -168,16 +176,9 @@ If False, returns the un-aligned timestamp.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data_boolean</strong> (<em>array</em><em> of </em><em>size</em><em> (</em><em>N</em><em>,</em><em>) </em><em>and type bool</em><em> or </em><em>signed integers.</em>) – <p>Array of 0s/1s indicating stimulus state (0: OFF, 1: ON).
-Also acceptable: array with runs of any integer values, interspersed with zeros.</p>
-<blockquote>
-<div><p>OK: [0,0,1,1,1,0,0,0,3,3,3,0,0,0,…]</p>
-</div></blockquote>
-<dl class="simple">
-<dt>Not acceptable: mixing values within a run.</dt><dd><p>NOT OK: [0,0,0,1,2,3,0,0,0,…]</p>
-</dd>
-</dl>
-</p></li>
+<li><p><strong>data_boolean</strong> (<em>array</em><em> of </em><em>size</em><em> (</em><em>N</em><em>,</em><em>) </em><em>and type bool</em><em> or </em><em>signed integers.</em>) – Array of 0s/1s indicating stimulus state (0: OFF, 1: ON).
+Also acceptable: array with runs of any integer values, interspersed with zeros: <cite>[0,0,1,1,1,0,0,0,3,3,3,0,0,0,…]</cite>
+Not acceptable: mixing values within a run: <cite>~[0,0,0,1,2,3,0,0,0,…]~</cite></p></li>
 <li><p><strong>data_timestamps</strong> (<em>array-like</em><em> of </em><em>size</em><em> (</em><em>N</em><em>,</em><em>)</em>) – Array of timestamps for the data.</p></li>
 <li><p><strong>mode</strong> (<em>str</em><em>, </em><em>default=&quot;raw&quot;</em>) – Either ‘raw’ for every onset or ‘initial_onset’ for onsets with a gap defined by block_min_spacing.</p></li>
 <li><p><strong>kind</strong> (<em>str</em><em>, </em><em>default=&quot;onsets&quot;</em>) – Either ‘onsets’ or ‘offsets’.</p></li>
@@ -221,7 +222,10 @@ Also acceptable: array with runs of any integer values, interspersed with zeros.
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="user_guide.html" class="btn btn-neutral float-left" title="Core Principles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="allenbrainobs.html" class="btn btn-neutral float-right" title="Allen Brain Observatory Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
