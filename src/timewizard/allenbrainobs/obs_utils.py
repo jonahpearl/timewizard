@@ -10,27 +10,46 @@ from .. import util as twu
 
 def time_from_last(timestamps, event_times, side="right", ):
     """
-    https://github.com/AllenInstitute/mindscope_utilities/blob/e5aa1e6aebf3f62570aaff0e2e9dba835c999a23/mindscope_utilities/visual_behavior_ophys/data_formatting.py#L885
+    Compute the time elapsed since the most recent event for each timestamp.
 
-    For each timestamp, returns the time from the most recent event time (in event_times).
-    NB: contrary to `tsu.index_of_nearest_value`, this function only looks one direction in time to find "nearest" events (hence "time from last" and not "time to nearest")
+    For each timestamp in the `timestamps` array, this function determines the time
+    elapsed since the nearest previous event time in the `event_times` array.
+    Unlike some functions that identify the nearest event in any direction, this
+    function specifically identifies the most recent prior event.
 
-    Args:
-        timestamps (np.array): array of timestamps for which the 'time from last event' will be returned
-        event_times (np.array): event timestamps
-        side: if there is a pair of ts / event time that are identical, should it measure wrt the previous event time (left) or the current one (right)?
-            eg: tsu.time_from_last(np.arange(7), [1.2, 4], side='left')  --> array([nan, nan, 0.8, 1.8, 2.8, 1. , 2. ]) 
-                tsu.time_from_last(np.arange(7), [1.2, 4], side='right') --> array([nan, nan, 0.8, 1.8, 0. , 1. , 2. ])
-        
+    Parameters
+    ----------
+    timestamps : np.array
+        Array of timestamps for which the 'time from last event' will be determined.
+
+    event_times : np.array
+        Array of event timestamps.
+
+    side : str, optional (default = "right")
+        Determines the behavior when a timestamp matches an event time. 
+        If 'left', the function measures with respect to the previous event time. 
+        If 'right', it measures with respect to the current matching event time.
+        For instance:
+        - Using 'left': `tsu.time_from_last(np.arange(7), [1.2, 4], side='left')  --> array([nan, nan, 0.8, 1.8, 2.8, 1. , 2. ])`
+        - Using 'right': `tsu.time_from_last(np.arange(7), [1.2, 4], side='right') --> array([nan, nan, 0.8, 1.8, 0. , 1. , 2. ])`
+
     Returns
-        time_from_last_event (np.array): the time from the last event for each timestamp
-    """
+    -------
+    time_from_last_event : np.array
+        The time elapsed since the last event for each timestamp.
 
+    Notes
+    -----
+    Origin: [GitHub source](https://github.com/AllenInstitute/mindscope_utilities/blob/e5aa1e6aebf3f62570aaff0e2e9dba835c999a23/mindscope_utilities/visual_behavior_ophys/data_formatting.py#L885)
+
+    Timestamps that occur before the first event in `event_times` will have their
+    corresponding time from the last event set to NaN.
+    """
     timestamps, event_times = twu.castnp(timestamps, event_times)
-    
+
     last_event_index = np.searchsorted(a=event_times, v=timestamps, side=side) - 1
     time_from_last_event = timestamps - event_times[last_event_index]
-    
+
     # flashes that happened before the other thing happened should return nan
     time_from_last_event = time_from_last_event.astype('float')  # cast to float to accomodate nans
     time_from_last_event[last_event_index == -1] = np.nan
@@ -43,8 +62,9 @@ def index_of_nearest_value(data_timestamps, event_timestamps, boundary_tol=None)
     https://github.com/AllenInstitute/mindscope_utilities/blob/e5aa1e6aebf3f62570aaff0e2e9dba835c999a23/mindscope_utilities/general_utilities.py#L149
 
     The index of the nearest sample time for each event time.
-    Parameters:
-    -----------
+    
+    Parameters
+    ----------
     sample_timestamps : np.ndarray of floats
         sorted 1-d vector of data sample timestamps.
     event_timestamps : np.ndarray of floats
@@ -53,8 +73,8 @@ def index_of_nearest_value(data_timestamps, event_timestamps, boundary_tol=None)
         If None, excludes event timestamps that are outside of the data timestamps range
         If a float, values within edge_tol of the first/last times are allowed.
 
-    Returns:
-    --------
+    Returns
+    -------
     event_aligned_ind : np.ndarray of int
         An array of nearest sample time index for each event times.
         Event times outside of the bounds are given an index of -1.
@@ -114,7 +134,7 @@ def generate_perievent_slices(
         This is to prevent unexpected weirdness with non-evenly-sampled data.
         Given high enough sampling rates, you won't even notice this.
 
-    Parameters:
+    Parameters
     -----------
     data_timestamps : np.array
         Timestamps of the datatrace.
@@ -135,7 +155,7 @@ def generate_perievent_slices(
         If left as None, gets indices manually for all window starts/stops.
         If provided, just gets event indices and infers starts/stops by adding the correct number of samples.
 
-    Yields:
+    Yields
     --------
     gen:
         A generator object with python slices for each peri-event window

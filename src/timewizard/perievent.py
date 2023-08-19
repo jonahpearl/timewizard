@@ -34,13 +34,13 @@ def perievent_traces(
             The sampling rate of the data, in Hz.
             If None, data are not assumed to be regularly sampled, and things are handled more carefully (eg traces will be a nested list instead of a matrix).
 
-        # TODO: replace this and other similar arguments with global settings that dictate how much double-checking tw should do of the user's inputs
-        # This global setting can also obv be overridden with kwargs to specific functions.
         ts_err_behav: str, default="error"
             Throw an error if fs but timestamps diffs not all equal.
             Else if "warn", report a warning but keep going.
+            # TODO: replace this and other similar arguments with global settings that dictate how much double-checking tw should do of the user's inputs
+            # This global setting can also obv be overridden with kwargs to specific functions.
 
-    Returns:
+    Returns
     --------
         times: array of shape (fs * (time_window[1] - time_window[0]),)
             The timestamps for the peri-event traces.
@@ -233,10 +233,8 @@ def find_perievent_times(
     ----------
     data_boolean : array of size (N,) and type bool or signed integers.
         Array of 0s/1s indicating stimulus state (0: OFF, 1: ON).
-        Also acceptable: array with runs of any integer values, interspersed with zeros.
-            OK: [0,0,1,1,1,0,0,0,3,3,3,0,0,0,...]
-        Not acceptable: mixing values within a run.
-            NOT OK: [0,0,0,1,2,3,0,0,0,...]
+        Also acceptable: array with runs of any integer values, interspersed with zeros: `[0,0,1,1,1,0,0,0,3,3,3,0,0,0,...]`
+        Not acceptable: mixing values within a run: `~[0,0,0,1,2,3,0,0,0,...]~`
 
     data_timestamps : array-like of size (N,)
         Array of timestamps for the data.
