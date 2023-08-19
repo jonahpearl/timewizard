@@ -3,4 +3,6 @@ sphinx==5.3.0
 sphinx-rtd-theme
 autodocsumm
 myst-nb
-timewizard  # uncomment once on pypi
+timewizard
+scipy
+fastcluster
