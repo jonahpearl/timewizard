@@ -60,3 +60,8 @@ html_context = {
 autosummary_generate = True
 autodoc_typehints = "description"
 autodoc_member_order = "bysource"
+
+# trying to fix rtd...
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../src'))
