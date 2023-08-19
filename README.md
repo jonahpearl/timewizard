@@ -1,6 +1,6 @@
 
 
-![Videochef logo](docs/logo.png)
+![Videochef logo](logo.png)
 
 Timewizard is a Python library that makes it easier to work with timeseries data, especially in the context of neuroscience. 
 

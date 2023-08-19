@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>timewizard.perievent &mdash; timewizard v0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            timewizard
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">timewizard</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">timewizard.perievent</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for timewizard.perievent</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util</span> <span class="k">as</span> <span class="n">twu</span>
+<span class="kn">from</span> <span class="nn">.allenbrainobs.obs_utils</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="perievent_traces"><a class="viewcode-back" href="../../perievent.html#timewizard.perievent.perievent_traces">[docs]</a><span class="k">def</span> <span class="nf">perievent_traces</span><span class="p">(</span>
+    <span class="n">data_timestamps</span><span class="p">,</span>
+    <span class="n">data_vals</span><span class="p">,</span>
+    <span class="n">event_timestamps</span><span class="p">,</span>
+    <span class="n">time_window</span><span class="p">,</span>
+    <span class="n">fs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ts_err_behav</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get peri-event traces of data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        data_timestamps : array of shape (N,...)</span>
+<span class="sd">            Timestamps of the data. Must be sorted along the time (0th) axis!</span>
+
+<span class="sd">        data_vals : array of shape (N,...)</span>
+<span class="sd">            The data corresponding to the timestamps.</span>
+
+<span class="sd">        event_timestamps : array of shape (M,)</span>
+<span class="sd">            Times to which to align the data.</span>
+<span class="sd">            The output will be sorted in the same order as event_timestamps.</span>
+
+<span class="sd">        time_window : tuple (start_offset, end_offset), in the same time base as the data.</span>
+<span class="sd">            For example, (-2,5) with times in seconds will use a window from 2 seconds before to 5 seconds after each event timestamp.</span>
+
+<span class="sd">        fs : int, default=None</span>
+<span class="sd">            The sampling rate of the data, in Hz.</span>
+<span class="sd">            If None, data are not assumed to be regularly sampled, and things are handled more carefully (eg traces will be a nested list instead of a matrix).</span>
+
+<span class="sd">        # TODO: replace this and other similar arguments with global settings that dictate how much double-checking tw should do of the user&#39;s inputs</span>
+<span class="sd">        # This global setting can also obv be overridden with kwargs to specific functions.</span>
+<span class="sd">        ts_err_behav: str, default=&quot;error&quot;</span>
+<span class="sd">            Throw an error if fs but timestamps diffs not all equal.</span>
+<span class="sd">            Else if &quot;warn&quot;, report a warning but keep going.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    --------</span>
+<span class="sd">        times: array of shape (fs * (time_window[1] - time_window[0]),)</span>
+<span class="sd">            The timestamps for the peri-event traces.</span>
+<span class="sd">            If fs is None, this is a nested list of timestamps for each event.</span>
+
+<span class="sd">        traces : array of shape (M, fs * (time_window[1] - time_window[0]), ...)</span>
+<span class="sd">            The aligned peri-event data.</span>
+<span class="sd">            If fs is None, this is a list of arrays with data for each event</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError:</span>
+<span class="sd">        If size of data_timestamps and data_vals don&#39;t match.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data_timestamps</span><span class="p">,</span> <span class="n">data_vals</span><span class="p">,</span> <span class="n">event_timestamps</span> <span class="o">=</span> <span class="n">twu</span><span class="o">.</span><span class="n">castnp</span><span class="p">(</span>
+        <span class="n">data_timestamps</span><span class="p">,</span> <span class="n">data_vals</span><span class="p">,</span> <span class="n">event_timestamps</span>
+    <span class="p">)</span>
+
+    <span class="c1"># TODO: incorporate global double-checking settings on these two things</span>
+    <span class="k">if</span> <span class="n">time_window</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The first element (</span><span class="si">{</span><span class="n">time_window</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) of your time window is positive and will start after the stim -- did you mean (</span><span class="si">{</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">time_window</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">?&quot;</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">twu</span><span class="o">.</span><span class="n">issorted</span><span class="p">(</span><span class="n">data_timestamps</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_timestamps</span><span class="p">)</span> <span class="o">!=</span> <span class="n">data_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;data_timestamps and data_vals must have the same length!&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">fs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fs</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Provided sampling rate is less than 1 Hz -- did you accidentally provide the sampling period? (ie 1/rate?)&quot;</span>
+            <span class="p">)</span>
+        <span class="n">start_ind_offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_window</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">fs</span><span class="p">)</span>
+        <span class="n">end_ind_offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_window</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">fs</span><span class="p">)</span>
+        <span class="n">traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">event_timestamps</span><span class="p">),</span> <span class="p">(</span><span class="n">end_ind_offset</span> <span class="o">-</span> <span class="n">start_ind_offset</span><span class="p">),</span> <span class="o">*</span><span class="n">data_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">time_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">time_window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">fs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">times</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">generate_perievent_slices</span><span class="p">(</span>
+            <span class="n">data_timestamps</span><span class="p">,</span> <span class="n">event_timestamps</span><span class="p">,</span> <span class="n">time_window</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">behavior_on_non_identical_timestamp_diffs</span><span class="o">=</span><span class="n">ts_err_behav</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">iSlice</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
+            <span class="n">traces</span><span class="p">[</span><span class="n">iSlice</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">_get_padded_slice</span><span class="p">(</span><span class="n">data_vals</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">data_vals</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Multi dim for data_values and no fs not implemented yet...use nested lists!&quot;</span><span class="p">)</span>
+        <span class="n">traces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">generate_perievent_slices</span><span class="p">(</span>
+            <span class="n">data_timestamps</span><span class="p">,</span> <span class="n">event_timestamps</span><span class="p">,</span> <span class="n">time_window</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">iSlice</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
+            <span class="n">traces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_get_padded_slice</span><span class="p">(</span><span class="n">data_vals</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_get_padded_slice</span><span class="p">(</span><span class="n">data_timestamps</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">times</span><span class="p">,</span> <span class="n">traces</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_padded_slice</span><span class="p">(</span><span class="n">full_trace</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">pad_val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get slices of data, and preserve the size of the slice even if the starts / stops are out of bounds of the data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    full_trace : array of shape (N,...)</span>
+<span class="sd">        The data from which to slice the trace. If multi-dimensional, the first axis is the sliced axis.</span>
+<span class="sd">    </span>
+<span class="sd">    s : slice of (start, stop)</span>
+<span class="sd">        A slice object. Negative values imply an intention to get data before the start of the trace,</span>
+<span class="sd">        rather than typical negative indexing in python.</span>
+<span class="sd">    </span>
+<span class="sd">    pad_val : float, default=np.nan</span>
+<span class="sd">        Value for parts of the trace that don&#39;t exist in the full_trace.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    trace : np.array</span>
+<span class="sd">        The sliced trace, respecting boundaries with padding.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError:</span>
+<span class="sd">        If slice stop is less than slice start.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="o">&lt;</span> <span class="n">s</span><span class="o">.</span><span class="n">start</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Slice stop cannot be less than slice start!&#39;</span><span class="p">)</span>
+    <span class="n">trace_len</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">start</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="n">full_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">new_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">trace_len</span><span class="p">,</span> <span class="o">*</span><span class="n">full_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">new_size</span><span class="p">)</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">pad_val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">n_left_pad</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">start</span>
+        <span class="n">pad_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_left_pad</span><span class="p">,</span> <span class="o">*</span><span class="n">full_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">pad_size</span><span class="p">)</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">pad_val</span><span class="p">),</span> <span class="n">full_trace</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span><span class="p">]])</span>
+    <span class="k">elif</span> <span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="o">&gt;</span> <span class="n">full_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">n_right_pad</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">full_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">pad_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_right_pad</span><span class="p">,</span> <span class="o">*</span><span class="n">full_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">full_trace</span><span class="p">[</span><span class="n">s</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">pad_size</span><span class="p">)</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">pad_val</span><span class="p">)])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">full_trace</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">trace</span>
+
+
+<div class="viewcode-block" id="perievent_events"><a class="viewcode-back" href="../../perievent.html#timewizard.perievent.perievent_events">[docs]</a><span class="k">def</span> <span class="nf">perievent_events</span><span class="p">(</span>
+        <span class="n">discrete_timestamps</span><span class="p">,</span>
+        <span class="n">event_timestamps</span><span class="p">,</span>
+        <span class="n">time_window</span><span class="p">,</span>
+        <span class="n">zeroed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">also_return_indices</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get nested list of discrete times that fall within each peri-event window.</span>
+
+<span class="sd">        For example, if you have a list of lick times (discrete_timestamps) </span>
+<span class="sd">        and a list of trial start times (event_timestamps), you could use </span>
+<span class="sd">        this function to get a list of lick times around the start of each trial.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    discrete_timestamps : array of shape (N,)</span>
+<span class="sd">        Discrete timestamps (i.e. events like licks, spikes, rears, etc.) to be windowed. Must be sorted!</span>
+
+<span class="sd">    event_timestamps : array of shape (M,)</span>
+<span class="sd">        Times to which to align the data.</span>
+<span class="sd">        The output will be sorted in the same order as event_timestamps.</span>
+
+<span class="sd">    time_window : tuple (start_offset, end_offset), in the same time base as the data.</span>
+<span class="sd">            For example, (-2,5) with times in seconds will use a window from 2 seconds before to 5 seconds after each event timestamp.</span>
+
+<span class="sd">    zeroed : bool, default=True</span>
+<span class="sd">        If True, returns peri-stimulus timestamps, i.e. t=0 at event onset. </span>
+<span class="sd">        If False, returns the un-aligned timestamp.</span>
+
+<span class="sd">    also_return_indices : bool, default=False</span>
+<span class="sd">        If True, return both the times and their indices.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    times : list of np.arrays</span>
+<span class="sd">        List of arrays with times for each peri-stimulus window.</span>
+
+<span class="sd">    idxs : list of lists, optional</span>
+<span class="sd">        List of indices corresponding to the times, returned only if `also_return_indices` is True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">discrete_timestamps</span><span class="p">,</span> <span class="n">event_timestamps</span><span class="p">,</span> <span class="n">time_window</span> <span class="o">=</span> <span class="n">twu</span><span class="o">.</span><span class="n">castnp</span><span class="p">(</span>
+        <span class="n">discrete_timestamps</span><span class="p">,</span> <span class="n">event_timestamps</span><span class="p">,</span> <span class="n">time_window</span>
+    <span class="p">)</span>
+
+    <span class="c1"># TODO: incorporate global double-checking settings on this</span>
+    <span class="k">assert</span> <span class="n">twu</span><span class="o">.</span><span class="n">issorted</span><span class="p">(</span><span class="n">discrete_timestamps</span><span class="p">)</span>
+
+    <span class="n">aligned_timestamps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">start_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span>
+        <span class="n">discrete_timestamps</span><span class="p">,</span> <span class="n">event_timestamps</span> <span class="o">+</span> <span class="n">time_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span>
+    <span class="p">)</span>
+    <span class="n">end_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span>
+        <span class="n">discrete_timestamps</span><span class="p">,</span> <span class="n">event_timestamps</span> <span class="o">+</span> <span class="n">time_window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">side</span><span class="o">=</span><span class="s2">&quot;right&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># cast to iterables in case of only one</span>
+    <span class="n">start_indices</span><span class="p">,</span> <span class="n">end_indices</span> <span class="o">=</span> <span class="n">twu</span><span class="o">.</span><span class="n">castnp</span><span class="p">(</span>
+        <span class="n">start_indices</span><span class="p">,</span> <span class="n">end_indices</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">iEvent</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">start_indices</span><span class="p">,</span> <span class="n">end_indices</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">zeroed</span><span class="p">:</span>
+            <span class="n">these_times</span> <span class="o">=</span> <span class="n">discrete_timestamps</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="o">-</span> <span class="n">event_timestamps</span><span class="p">[</span><span class="n">iEvent</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">these_times</span> <span class="o">=</span> <span class="n">discrete_timestamps</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+        <span class="n">aligned_timestamps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">these_times</span><span class="p">)</span>
+        <span class="n">idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">also_return_indices</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">aligned_timestamps</span><span class="p">,</span> <span class="n">idxs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">aligned_timestamps</span></div>
+
+
+<div class="viewcode-block" id="find_perievent_times"><a class="viewcode-back" href="../../perievent.html#timewizard.perievent.find_perievent_times">[docs]</a><span class="k">def</span> <span class="nf">find_perievent_times</span><span class="p">(</span>
+    <span class="n">data_boolean</span><span class="p">,</span>
+    <span class="n">data_timestamps</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;raw&quot;</span><span class="p">,</span>
+    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;onsets&quot;</span><span class="p">,</span>
+    <span class="n">block_min_spacing</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return onset (or offset) times for when some boolean timeseries becomes (or stops being) True.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_boolean : array of size (N,) and type bool or signed integers.</span>
+<span class="sd">        Array of 0s/1s indicating stimulus state (0: OFF, 1: ON).</span>
+<span class="sd">        Also acceptable: array with runs of any integer values, interspersed with zeros.</span>
+<span class="sd">            OK: [0,0,1,1,1,0,0,0,3,3,3,0,0,0,...]</span>
+<span class="sd">        Not acceptable: mixing values within a run.</span>
+<span class="sd">            NOT OK: [0,0,0,1,2,3,0,0,0,...]</span>
+
+<span class="sd">    data_timestamps : array-like of size (N,)</span>
+<span class="sd">        Array of timestamps for the data.</span>
+
+<span class="sd">    mode : str, default=&quot;raw&quot;</span>
+<span class="sd">        Either &#39;raw&#39; for every onset or &#39;initial_onset&#39; for onsets with a gap defined by block_min_spacing.</span>
+
+<span class="sd">    kind : str, default=&quot;onsets&quot;</span>
+<span class="sd">        Either &#39;onsets&#39; or &#39;offsets&#39;.</span>
+
+<span class="sd">    block_min_spacing : int, default=None</span>
+<span class="sd">        Time unit gap required between events if mode is &#39;initial_onset&#39;.</span>
+
+<span class="sd">    custom_onset_times : array-like or None, default=None</span>
+<span class="sd">        Custom onset times to filter with block_min_spacing if provided.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple of np.array</span>
+<span class="sd">        Indices and timestamps for the onsets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check kwargs</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;onsets&quot;</span><span class="p">,</span> <span class="s2">&quot;offsets&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;kind must be &#39;onsets&#39; or &#39;offsets&#39;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">,</span> <span class="s2">&quot;initial_onset&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;mode must be &#39;raw&#39; or &#39;initial_onset&#39;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;initial_onset&#39;</span> <span class="ow">and</span> <span class="n">block_min_spacing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;block_min_spacing must be provided if mode is &#39;initial_onset&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check for compatible input data types</span>
+    <span class="k">if</span> <span class="n">data_boolean</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;bool&#39;</span><span class="p">:</span>
+        <span class="n">data_boolean</span> <span class="o">=</span> <span class="n">data_boolean</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">data_boolean</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unsignedinteger</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;stim_bool is type </span><span class="si">{</span><span class="n">data_boolean</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s1"> but must be signed in order for diff to work properly!&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">data_boolean</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;stim_bool must be all positive or 0&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Some sanity checks</span>
+    <span class="n">data_boolean</span><span class="p">,</span> <span class="n">data_timestamps</span> <span class="o">=</span> <span class="n">twu</span><span class="o">.</span><span class="n">castnp</span><span class="p">(</span><span class="n">data_boolean</span><span class="p">,</span> <span class="n">data_timestamps</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">data_boolean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">data_timestamps</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">data_boolean</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;No stims detected&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="c1"># Get onsets (or offsets)</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;onsets&quot;</span><span class="p">:</span>
+        <span class="c1"># Can&#39;t just use diff == 1, since we allow arbitrary non-zero integers</span>
+        <span class="n">event_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">stim_bool</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">stim_bool</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;offsets&quot;</span><span class="p">:</span>
+        <span class="n">event_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">stim_bool</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">stim_bool</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">event_idx</span> <span class="o">=</span> <span class="n">event_func</span><span class="p">(</span><span class="n">data_boolean</span><span class="p">)</span>
+    <span class="n">event_times</span> <span class="o">=</span> <span class="n">data_timestamps</span><span class="p">[</span><span class="n">event_idx</span><span class="p">]</span>
+
+    <span class="c1"># Catch boundary cases</span>
+    <span class="c1"># (This is weird in the case that the very final point is an onset -- then it&#39;s also an offset?? Ditto if only the very first point is a 1.)</span>
+    <span class="k">if</span> <span class="n">data_boolean</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;onsets&quot;</span><span class="p">:</span>
+        <span class="n">event_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">event_idx</span><span class="p">])</span>
+        <span class="n">event_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">data_timestamps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">event_times</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">data_boolean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;offsets&quot;</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">data_boolean</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">event_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">event_idx</span><span class="p">,</span> <span class="n">data_boolean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">event_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">event_times</span><span class="p">,</span> <span class="n">data_timestamps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+
+    <span class="c1"># Chunk detected events if requested</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;raw&quot;</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;initial_onset&quot;</span><span class="p">:</span>
+        <span class="n">event_times</span><span class="p">,</span> <span class="n">event_idx</span> <span class="o">=</span> <span class="n">chunk_events</span><span class="p">(</span><span class="n">event_times</span><span class="p">,</span> <span class="n">block_min_spacing</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">event_idx</span><span class="p">,),</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;mode not recognized&quot;</span><span class="p">)</span>
+
+    <span class="n">event_times</span><span class="p">,</span> <span class="n">event_idx</span> <span class="o">=</span> <span class="n">twu</span><span class="o">.</span><span class="n">castnp</span><span class="p">(</span><span class="n">event_times</span><span class="p">,</span> <span class="n">event_idx</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">event_idx</span><span class="p">,</span> <span class="n">event_times</span></div>
+
+
+<div class="viewcode-block" id="chunk_events"><a class="viewcode-back" href="../../perievent.html#timewizard.perievent.chunk_events">[docs]</a><span class="k">def</span> <span class="nf">chunk_events</span><span class="p">(</span>
+        <span class="n">event_times</span><span class="p">,</span>
+        <span class="n">block_min_spacing</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;onsets&#39;</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return only the event times (and corresponding vals) that are more than block_min_spacing apart.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    event_times : np.array of shape (M,)</span>
+<span class="sd">        Vector of event times.</span>
+
+<span class="sd">    block_min_spacing : int</span>
+<span class="sd">        Minimum time difference between two events.</span>
+
+<span class="sd">    *args: np.arrays of shape (M,)</span>
+<span class="sd">        Other arrays that will be chunked in the same way as onset_times.</span>
+
+<span class="sd">    kind : str, default=&quot;onsets&quot;</span>
+<span class="sd">        Specifies if we&#39;re working with &quot;onsets&quot; or &quot;offsets&quot;.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.array</span>
+<span class="sd">        Filtered onset times that are more than block_min_spacing apart.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;onsets&quot;</span><span class="p">:</span>
+        <span class="n">time_diff_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">times</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;offsets&quot;</span><span class="p">:</span>
+        <span class="n">time_diff_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">times</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">times</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;kind not recognized (either &#39;onsets&#39;or &#39;offsets&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Find differences in onset times</span>
+    <span class="n">time_diffs</span> <span class="o">=</span> <span class="n">time_diff_func</span><span class="p">(</span><span class="n">event_times</span><span class="p">)</span>
+
+    <span class="c1"># Concat on a big num on the end to get first / last one</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;onsets&quot;</span><span class="p">:</span>
+        <span class="n">time_diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([(</span><span class="n">block_min_spacing</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,),</span> <span class="n">time_diffs</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;offsets&quot;</span><span class="p">:</span>
+        <span class="n">time_diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">time_diffs</span><span class="p">,</span> <span class="p">(</span><span class="n">block_min_spacing</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,)])</span>
+
+    <span class="c1"># Only take times with spacing larger than requested</span>
+    <span class="n">initial_idx</span> <span class="o">=</span> <span class="n">time_diffs</span> <span class="o">&gt;</span> <span class="n">block_min_spacing</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">event_times</span><span class="p">[</span><span class="n">initial_idx</span><span class="p">],</span> <span class="o">*</span><span class="p">(</span><span class="n">arg</span><span class="p">[</span><span class="n">initial_idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Jonah Pearl.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

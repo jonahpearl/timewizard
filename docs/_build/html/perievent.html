@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>perievent &mdash; timewizard v0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            timewizard
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">timewizard</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">perievent</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/jonahpearl/timewizard/blob/master/docs/perievent.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-timewizard.perievent">
+<span id="perievent"></span><h1>perievent<a class="headerlink" href="#module-timewizard.perievent" title="Permalink to this heading"></a></h1>
+<p><strong>Functions:</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#timewizard.perievent.perievent_traces" title="timewizard.perievent.perievent_traces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">perievent_traces</span></code></a>(data_timestamps, data_vals, ...)</p></td>
+<td><p>Get peri-event traces of data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#timewizard.perievent.perievent_events" title="timewizard.perievent.perievent_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">perievent_events</span></code></a>(discrete_timestamps, ...[, ...])</p></td>
+<td><p>Get nested list of discrete times that fall within each peri-event window.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#timewizard.perievent.find_perievent_times" title="timewizard.perievent.find_perievent_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_perievent_times</span></code></a>(data_boolean, ...[, ...])</p></td>
+<td><p>Return onset (or offset) times for when some boolean timeseries becomes (or stops being) True.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#timewizard.perievent.chunk_events" title="timewizard.perievent.chunk_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk_events</span></code></a>(event_times, block_min_spacing, ...)</p></td>
+<td><p>Return only the event times (and corresponding vals) that are more than block_min_spacing apart.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="timewizard.perievent.perievent_traces">
+<span class="sig-prename descclassname"><span class="pre">timewizard.perievent.</span></span><span class="sig-name descname"><span class="pre">perievent_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ts_err_behav</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'error'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timewizard/perievent.html#perievent_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timewizard.perievent.perievent_traces" title="Permalink to this definition"></a></dt>
+<dd><p>Get peri-event traces of data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_timestamps</strong> (<em>array</em><em> of </em><em>shape</em><em> (</em><em>N</em><em>,</em><em>...</em><em>)</em>) – Timestamps of the data. Must be sorted along the time (0th) axis!</p></li>
+<li><p><strong>data_vals</strong> (<em>array</em><em> of </em><em>shape</em><em> (</em><em>N</em><em>,</em><em>...</em><em>)</em>) – The data corresponding to the timestamps.</p></li>
+<li><p><strong>event_timestamps</strong> (<em>array</em><em> of </em><em>shape</em><em> (</em><em>M</em><em>,</em><em>)</em>) – Times to which to align the data.
+The output will be sorted in the same order as event_timestamps.</p></li>
+<li><p><strong>time_window</strong> (<em>tuple</em><em> (</em><em>start_offset</em><em>, </em><em>end_offset</em><em>)</em><em>, </em><em>in the same time base as the data.</em>) – For example, (-2,5) with times in seconds will use a window from 2 seconds before to 5 seconds after each event timestamp.</p></li>
+<li><p><strong>fs</strong> (<em>int</em><em>, </em><em>default=None</em>) – The sampling rate of the data, in Hz.
+If None, data are not assumed to be regularly sampled, and things are handled more carefully (eg traces will be a nested list instead of a matrix).</p></li>
+<li><p><strong>TODO</strong> (<em>#</em>) – </p></li>
+<li><p><strong>functions.</strong> (<em># This global setting can also obv be overridden with kwargs to specific</em>) – </p></li>
+<li><p><strong>ts_err_behav</strong> (<em>str</em><em>, </em><em>default=&quot;error&quot;</em>) – Throw an error if fs but timestamps diffs not all equal.
+Else if “warn”, report a warning but keep going.</p></li>
+</ul>
+</dd>
+</dl>
+<section id="returns">
+<h2>Returns:<a class="headerlink" href="#returns" title="Permalink to this heading"></a></h2>
+<blockquote>
+<div><dl class="simple">
+<dt>times: array of shape (fs * (time_window[1] - time_window[0]),)</dt><dd><p>The timestamps for the peri-event traces.
+If fs is None, this is a nested list of timestamps for each event.</p>
+</dd>
+<dt>traces<span class="classifier">array of shape (M, fs * (time_window[1] - time_window[0]), …)</span></dt><dd><p>The aligned peri-event data.
+If fs is None, this is a list of arrays with data for each event</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">raises ValueError:<span class="colon">:</span></dt>
+<dd class="field-odd"><p>If size of data_timestamps and data_vals don’t match.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timewizard.perievent.perievent_events">
+<span class="sig-prename descclassname"><span class="pre">timewizard.perievent.</span></span><span class="sig-name descname"><span class="pre">perievent_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discrete_timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeroed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">also_return_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timewizard/perievent.html#perievent_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timewizard.perievent.perievent_events" title="Permalink to this definition"></a></dt>
+<dd><p>Get nested list of discrete times that fall within each peri-event window.</p>
+<blockquote>
+<div><p>For example, if you have a list of lick times (discrete_timestamps)
+and a list of trial start times (event_timestamps), you could use
+this function to get a list of lick times around the start of each trial.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>discrete_timestamps</strong> (<em>array</em><em> of </em><em>shape</em><em> (</em><em>N</em><em>,</em><em>)</em>) – Discrete timestamps (i.e. events like licks, spikes, rears, etc.) to be windowed. Must be sorted!</p></li>
+<li><p><strong>event_timestamps</strong> (<em>array</em><em> of </em><em>shape</em><em> (</em><em>M</em><em>,</em><em>)</em>) – Times to which to align the data.
+The output will be sorted in the same order as event_timestamps.</p></li>
+<li><p><strong>time_window</strong> (<em>tuple</em><em> (</em><em>start_offset</em><em>, </em><em>end_offset</em><em>)</em><em>, </em><em>in the same time base as the data.</em>) – For example, (-2,5) with times in seconds will use a window from 2 seconds before to 5 seconds after each event timestamp.</p></li>
+<li><p><strong>zeroed</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, returns peri-stimulus timestamps, i.e. t=0 at event onset.
+If False, returns the un-aligned timestamp.</p></li>
+<li><p><strong>also_return_indices</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, return both the times and their indices.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>times</strong> (<em>list of np.arrays</em>) – List of arrays with times for each peri-stimulus window.</p></li>
+<li><p><strong>idxs</strong> (<em>list of lists, optional</em>) – List of indices corresponding to the times, returned only if <cite>also_return_indices</cite> is True.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timewizard.perievent.find_perievent_times">
+<span class="sig-prename descclassname"><span class="pre">timewizard.perievent.</span></span><span class="sig-name descname"><span class="pre">find_perievent_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_boolean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'onsets'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_min_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timewizard/perievent.html#find_perievent_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timewizard.perievent.find_perievent_times" title="Permalink to this definition"></a></dt>
+<dd><p>Return onset (or offset) times for when some boolean timeseries becomes (or stops being) True.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_boolean</strong> (<em>array</em><em> of </em><em>size</em><em> (</em><em>N</em><em>,</em><em>) </em><em>and type bool</em><em> or </em><em>signed integers.</em>) – <p>Array of 0s/1s indicating stimulus state (0: OFF, 1: ON).
+Also acceptable: array with runs of any integer values, interspersed with zeros.</p>
+<blockquote>
+<div><p>OK: [0,0,1,1,1,0,0,0,3,3,3,0,0,0,…]</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Not acceptable: mixing values within a run.</dt><dd><p>NOT OK: [0,0,0,1,2,3,0,0,0,…]</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>data_timestamps</strong> (<em>array-like</em><em> of </em><em>size</em><em> (</em><em>N</em><em>,</em><em>)</em>) – Array of timestamps for the data.</p></li>
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>default=&quot;raw&quot;</em>) – Either ‘raw’ for every onset or ‘initial_onset’ for onsets with a gap defined by block_min_spacing.</p></li>
+<li><p><strong>kind</strong> (<em>str</em><em>, </em><em>default=&quot;onsets&quot;</em>) – Either ‘onsets’ or ‘offsets’.</p></li>
+<li><p><strong>block_min_spacing</strong> (<em>int</em><em>, </em><em>default=None</em>) – Time unit gap required between events if mode is ‘initial_onset’.</p></li>
+<li><p><strong>custom_onset_times</strong> (<em>array-like</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Custom onset times to filter with block_min_spacing if provided.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Indices and timestamps for the onsets.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timewizard.perievent.chunk_events">
+<span class="sig-prename descclassname"><span class="pre">timewizard.perievent.</span></span><span class="sig-name descname"><span class="pre">chunk_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_min_spacing</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'onsets'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timewizard/perievent.html#chunk_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timewizard.perievent.chunk_events" title="Permalink to this definition"></a></dt>
+<dd><p>Return only the event times (and corresponding vals) that are more than block_min_spacing apart.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_times</strong> (<em>np.array</em><em> of </em><em>shape</em><em> (</em><em>M</em><em>,</em><em>)</em>) – Vector of event times.</p></li>
+<li><p><strong>block_min_spacing</strong> (<em>int</em>) – Minimum time difference between two events.</p></li>
+<li><p><strong>*args</strong> (<em>np.arrays</em><em> of </em><em>shape</em><em> (</em><em>M</em><em>,</em><em>)</em>) – Other arrays that will be chunked in the same way as onset_times.</p></li>
+<li><p><strong>kind</strong> (<em>str</em><em>, </em><em>default=&quot;onsets&quot;</em>) – Specifies if we’re working with “onsets” or “offsets”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Filtered onset times that are more than block_min_spacing apart.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Jonah Pearl.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
