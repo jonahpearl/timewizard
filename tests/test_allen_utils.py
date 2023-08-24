@@ -48,3 +48,23 @@ def test_index_of_nearest_value():
     ans = twp.index_of_nearest_value(timestamps, event_timestamps, oob_behavior="remove")
     expected = np.array([3, 4, 4])
     assert np.allclose(ans, expected)
+
+    # warn and force left
+    ans = twp.index_of_nearest_value(timestamps, event_timestamps, oob_behavior="warn", force_side="left")
+    expected = np.array([-1, 3, 3, 3, -1])
+    assert np.allclose(ans, expected)
+
+    # warn and force right
+    ans = twp.index_of_nearest_value(timestamps, event_timestamps, oob_behavior="warn", force_side="right")
+    expected = np.array([-1, 4, 4, 4, -1])
+    assert np.allclose(ans, expected)
+
+    # remove and force left
+    ans = twp.index_of_nearest_value(timestamps, event_timestamps, oob_behavior="remove", force_side="left")
+    expected = np.array([3, 3, 3])
+    assert np.allclose(ans, expected)
+
+    # remove and force right
+    ans = twp.index_of_nearest_value(timestamps, event_timestamps, oob_behavior="remove", force_side="right")
+    expected = np.array([4, 4, 4])
+    assert np.allclose(ans, expected)

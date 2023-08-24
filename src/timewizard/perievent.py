@@ -1,8 +1,9 @@
 import numpy as np
 import warnings
+from scipy.interpolate import interp1d
 
 from . import util as twu
-from .allenbrainobs.obs_utils import *
+from .allenbrainobs.obs_utils import index_of_nearest_value, time_to_event
 
 
 def perievent_traces(
@@ -359,3 +360,60 @@ def chunk_events(
     initial_idx = time_diffs > block_min_spacing
 
     return (event_times[initial_idx], *(arg[initial_idx] for arg in args))
+
+
+def map_values(data_timestamps, data_vals, event_timestamps, interpolate=False):
+    """Map values of data to event times.
+
+    Parameters
+    ----------
+    data_timestamps : array of shape (N,...)
+        Timestamps of the data. Must be sorted along the time (0th) axis!
+
+    data_vals : array of shape (N,...)
+        The data corresponding to the timestamps.
+
+    event_timestamps : array of shape (M,)
+        Times to which to align the data.
+        The output will be sorted in the same order as event_timestamps.
+
+    interpolate : bool, default=False
+        If False, use the value at the nearest timestamp.
+        If True, use linear interpolation to estimate values at event times.
+
+    Returns
+    --------
+    vals : array of shape (M, ...)
+        The signal value at each event time.
+
+    Raises
+    ------
+    ValueError:
+        If size of data_timestamps and data_vals don't match.
+    """
+
+    data_timestamps, data_vals, event_timestamps = twu.castnp(
+        data_timestamps, data_vals, event_timestamps
+    )
+
+    if len(data_timestamps) != data_vals.shape[0]:
+        raise ValueError('data_timestamps and data_vals must have the same length!')
+
+    if interpolate:
+        vals = np.zeros_like(event_timestamps).astype('float')
+        nearest_prev_idx = index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior='warn', force_side='left')
+        nearest_subseq_idx = index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior='warn', force_side='right')
+        for iEvt, (prev_idx, subseq_idx) in enumerate(zip(nearest_prev_idx, nearest_subseq_idx)):
+            if prev_idx == -1 or subseq_idx == -1:
+                vals[iEvt] = np.nan
+                continue
+            t = data_timestamps[[prev_idx, subseq_idx]]
+            y = data_vals[[prev_idx, subseq_idx]]
+            f = interp1d(t, y, kind='linear')
+            vals[iEvt] = f(event_timestamps[iEvt])
+    else:
+        nearest_idx = index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior='warn')
+        vals = data_vals[nearest_idx].astype('float')
+        vals[nearest_idx == -1] = np.nan
+
+    return vals

@@ -132,3 +132,19 @@ def test_mutually_nearest_pts():
     assert np.allclose(t[i2], np.array([0, 2, 3, 7, 8, 9]))
     assert np.allclose(dts_1, np.array([0., -0.01, -0.001, 0.1, -0.05, 0.]))
     assert np.allclose(dts_1, -1 * dts_2)
+
+
+def test_map_values():
+    t = np.arange(1, 10)
+    vals = t * 2  # [2, 4, 6, 8, 10, 12, 14, 16, 18]
+    evt_times = np.array([0, 3, 3.5, 6.7, 10])
+
+    # no interpolation
+    ans = twp.map_values(t, vals, evt_times, interpolate=False)
+    expected = np.array([np.nan, 6, 8, 14, np.nan])
+    assert np.allclose(ans, expected, equal_nan=True)
+
+    # interpolate
+    ans = twp.map_values(t, vals, evt_times, interpolate=True)
+    expected = np.array([np.nan, 6, 7, 13.4, np.nan])
+    assert np.allclose(ans, expected, equal_nan=True)
