@@ -77,28 +77,40 @@ def time_to_event(data_timestamps, event_timestamps, resolve_equality="right", s
     return transformed_times
 
 
-def index_of_nearest_value(data_timestamps, event_timestamps, boundary_tol=None):
+def index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior="error"):
     """
-    https://github.com/AllenInstitute/mindscope_utilities/blob/e5aa1e6aebf3f62570aaff0e2e9dba835c999a23/mindscope_utilities/general_utilities.py#L149
+    Get the index of the nearest time for each event time.
+    If `idx=index_of_nearest_value(t,evts)` then `t[idx]` are the closest times in data_timestamps to each event_timestamp.)
 
-    The index of the nearest sample time for each event time.
-    
     Parameters
     ----------
-    sample_timestamps : np.ndarray of floats
-        sorted 1-d vector of data sample timestamps.
-    event_timestamps : np.ndarray of floats
-        1-d vector of event timestamps.
-    boundary_tol: float (default: None)
-        If None, excludes event timestamps that are outside of the data timestamps range
-        If a float, values within edge_tol of the first/last times are allowed.
+        data_timestamps : array of shape (N,)
+            *Sorted* timestamps.
+
+        event_timestamps : array of shape (M,)
+            Event timestamps.
+
+        oob_behavior : str, optional (default = "error")
+            Determines the behavior when an event timestamp is outside the range of the sample timestamps.
+            If 'error': raises a ValueError.
+            If 'warn': raises a warning and returns -1 for those indices. *NB*: if you are using the result to index back into another list, be wary of these -1's! See tw.map_values() for a wrapper that handles this for you.
+            If 'remove': removes the out-of-bounds events from the returned list.
 
     Returns
     -------
-    event_aligned_ind : np.ndarray of int
-        An array of nearest sample time index for each event times.
-        Event times outside of the bounds are given an index of -1.
-        (NB, of course -1 is still a valid index in Python! But there is no integer nan, so -1 is the best way we have to say "invalid intger")
+        event_aligned_ind : int, array of shape (M,)
+            An array of indices into data_timestamps which give the closest times to each event.
+            Event times outside of the bounds are given an index of -1.
+            (NB, of course -1 is still a valid index in Python! But there is no integer nan, so -1 is the best way we have to say "invalid intger")
+
+    Raises
+    ------
+        ValueError:
+            If any event times are outside the range of the sample timestamps and `oob_behavior` is 'error'.
+
+    Notes
+    -----
+    Original: https://github.com/AllenInstitute/mindscope_utilities/blob/e5aa1e6aebf3f62570aaff0e2e9dba835c999a23/mindscope_utilities/general_utilities.py#L149
     """
     data_timestamps, event_timestamps = twu.castnp(data_timestamps, event_timestamps)
 
@@ -108,28 +120,29 @@ def index_of_nearest_value(data_timestamps, event_timestamps, boundary_tol=None)
     outside_range_bool = np.logical_or(
         event_timestamps < data_timestamps[0], event_timestamps > data_timestamps[-1]
     )
-    if outside_range_bool.sum() > 0:
+    insertion_ind = insertion_ind[~outside_range_bool]
+
+    if oob_behavior == "error" and outside_range_bool.sum() > 0:
+        raise ValueError("Some event timestamps are outside the range of data timestamps.")
+    elif oob_behavior == "warn" and outside_range_bool.sum() > 0:
         warnings.warn(
             "Some event timestamps are outside the range of data timestamps. Such indices will be denoted -1 in the returned vector."
         )
-    if boundary_tol is None:
-        insertion_ind = insertion_ind[~outside_range_bool]
-    else:
-        raise NotImplementedError()
 
     # Is the value closer to data at insertion_ind or insertion_ind-1?
     ind_diff = data_timestamps[insertion_ind] - event_timestamps[~outside_range_bool]
     ind_minus_one_diff = np.abs(
-        data_timestamps[np.clip(insertion_ind - 1, 0, np.inf).astype(int)]
-        - event_timestamps[~outside_range_bool]
+        data_timestamps[np.clip(insertion_ind - 1, 0, np.inf).astype(int)] - event_timestamps[~outside_range_bool]
     )
     event_indices = insertion_ind - (ind_diff > ind_minus_one_diff).astype(int)
 
-    # Pad with nans in case some values were removed due to boundaries
-    event_indices_full = -1 * np.ones(event_timestamps.shape, dtype="int")
-    event_indices_full[~outside_range_bool] = event_indices
-
-    return event_indices_full
+    if oob_behavior == "remove":
+        return event_indices
+    else:
+        # pad with -1's in case some values were removed due to boundaries, if requested
+        event_indices_full = -1 * np.ones(event_timestamps.shape, dtype="int")
+        event_indices_full[~outside_range_bool] = event_indices
+        return event_indices_full
 
 
 def generate_perievent_slices(
