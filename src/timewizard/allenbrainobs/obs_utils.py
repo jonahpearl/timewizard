@@ -8,53 +8,73 @@ from .. import util as twu
 # so long as the license is included. The license is included in this folder, to make explicit which code in timewizard is derived from the Allen's code.
 
 
-def time_from_last(timestamps, event_times, side="right", ):
+def time_to_event(data_timestamps, event_timestamps, resolve_equality="right", side="last"):
     """
-    Compute the time elapsed since the most recent event for each timestamp.
+    Compute the time elapsed since the most recent event (or until the next event, depending on `side`).
 
-    For each timestamp in the `timestamps` array, this function determines the time
-    elapsed since the nearest previous event time in the `event_times` array.
-    Unlike some functions that identify the nearest event in any direction, this
+    For each timestamp in the `data_timestamps` array, transform it into the time
+    elapsed since the nearest previous event time. Unlike some functions that identify the nearest event in any direction, this
     function specifically identifies the most recent prior event.
 
     Parameters
     ----------
-    timestamps : np.array
-        Array of timestamps for which the 'time from last event' will be determined.
+        data_timestamps : np.array of shape (N,)
+            Times which will be transformed relative to event_timstamps.
 
-    event_times : np.array
-        Array of event timestamps.
+        event_timestamps : np.array of shape (M,)
+            Array of event times, which will be referenced to transform data_timestamps.
 
-    side : str, optional (default = "right")
-        Determines the behavior when a timestamp matches an event time. 
-        If 'left', the function measures with respect to the previous event time. 
-        If 'right', it measures with respect to the current matching event time.
-        For instance:
-        - Using 'left': `tsu.time_from_last(np.arange(7), [1.2, 4], side='left')  --> array([nan, nan, 0.8, 1.8, 2.8, 1. , 2. ])`
-        - Using 'right': `tsu.time_from_last(np.arange(7), [1.2, 4], side='right') --> array([nan, nan, 0.8, 1.8, 0. , 1. , 2. ])`
+        resolve_equality : str, optional (default = "right")
+            Determines the behavior when a timestamp matches an event time.
+            If 'left', the function measures with respect to the previous event time.
+            If 'right', it measures with respect to the current matching event time.
+            For instance:
+            - Using 'left': `tw.time_from_last(np.arange(7), [1.2, 4], side='left')  --> array([nan, nan, 0.8, 1.8, 2.8, 1. , 2. ])`
+            - Using 'right': `tw.time_from_last(np.arange(7), [1.2, 4], side='right') --> array([nan, nan, 0.8, 1.8, 0. , 1. , 2. ])`
+
+        side : str, optional (default = "last")
+            Computes time from last by default.
+            If 'next', cmopute time until next event instead.
+
 
     Returns
     -------
-    time_from_last_event : np.array
-        The time elapsed since the last event for each timestamp.
+        time_from_last_event : np.array of shape (N,)
+            The time elapsed since the last event (or until next event), for each data timestamp.
 
     Notes
     -----
-    Origin: [GitHub source](https://github.com/AllenInstitute/mindscope_utilities/blob/e5aa1e6aebf3f62570aaff0e2e9dba835c999a23/mindscope_utilities/visual_behavior_ophys/data_formatting.py#L885)
+        Original: [GitHub source](https://github.com/AllenInstitute/mindscope_utilities/blob/e5aa1e6aebf3f62570aaff0e2e9dba835c999a23/mindscope_utilities/visual_behavior_ophys/data_formatting.py#L885)
 
-    Timestamps that occur before the first event in `event_times` will have their
-    corresponding time from the last event set to NaN.
+        Data timestamps that occur before the first (or after the final event) event will have their
+        corresponding time from the last event set to NaN.
     """
-    timestamps, event_times = twu.castnp(timestamps, event_times)
+    data_timestamps, event_timestamps = twu.castnp(data_timestamps, event_timestamps)
 
-    last_event_index = np.searchsorted(a=event_times, v=timestamps, side=side) - 1
-    time_from_last_event = timestamps - event_times[last_event_index]
+    # Check kwargs
+    if resolve_equality not in ["left", "right"]:
+        raise ValueError("resolve_equality must be 'left' or 'right'")
+    if side not in ["last", "next"]:
+        raise ValueError("side must be 'last' or 'next'")
 
-    # flashes that happened before the other thing happened should return nan
-    time_from_last_event = time_from_last_event.astype('float')  # cast to float to accomodate nans
-    time_from_last_event[last_event_index == -1] = np.nan
+    if side == "last":
+        last_event_index = np.searchsorted(a=event_timestamps, v=data_timestamps, side=resolve_equality) - 1
+        transformed_times = data_timestamps - event_timestamps[last_event_index]
 
-    return time_from_last_event
+        # times before the first event should return nan
+        transformed_times = transformed_times.astype('float')  # cast to float to accomodate nans
+        transformed_times[last_event_index == -1] = np.nan
+
+    elif side == "next":
+        next_event_index = np.searchsorted(a=event_timestamps, v=data_timestamps, side=resolve_equality)
+        next_event_index[next_event_index == len(event_timestamps)] = -1  # just do this temporarily to avoid valueerrors; we will set all the values equal to np.nan anyways
+        transformed_times = event_timestamps[next_event_index] - data_timestamps
+
+        # times after the last event should return nan
+        transformed_times = transformed_times.astype('float')
+        transformed_times[next_event_index == -1] = np.nan
+
+    return transformed_times
 
 
 def index_of_nearest_value(data_timestamps, event_timestamps, boundary_tol=None):
