@@ -77,7 +77,7 @@ def time_to_event(data_timestamps, event_timestamps, resolve_equality="right", s
     return transformed_times
 
 
-def index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior="error"):
+def index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior="error", force_side=None):
     """
     Get the index of the nearest time for each event time.
     If `idx=index_of_nearest_value(t,evts)` then `t[idx]` are the closest times in data_timestamps to each event_timestamp.)
@@ -95,6 +95,11 @@ def index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior="erro
             If 'error': raises a ValueError.
             If 'warn': raises a warning and returns -1 for those indices. *NB*: if you are using the result to index back into another list, be wary of these -1's! See tw.map_values() for a wrapper that handles this for you.
             If 'remove': removes the out-of-bounds events from the returned list.
+
+        force_side : str, optional (default = None)
+            If None, returns the actual nearest value, regardless of whether it is before or after the event.
+            If 'left', returns the nearest value before the event.
+            If 'right', returns the nearest value after the event.
 
     Returns
     -------
@@ -129,12 +134,17 @@ def index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior="erro
             "Some event timestamps are outside the range of data timestamps. Such indices will be denoted -1 in the returned vector."
         )
 
-    # Is the value closer to data at insertion_ind or insertion_ind-1?
-    ind_diff = data_timestamps[insertion_ind] - event_timestamps[~outside_range_bool]
-    ind_minus_one_diff = np.abs(
-        data_timestamps[np.clip(insertion_ind - 1, 0, np.inf).astype(int)] - event_timestamps[~outside_range_bool]
-    )
-    event_indices = insertion_ind - (ind_diff > ind_minus_one_diff).astype(int)
+    if force_side is None:
+        # Is the value closer to data at insertion_ind or insertion_ind-1?
+        ind_diff = data_timestamps[insertion_ind] - event_timestamps[~outside_range_bool]
+        ind_minus_one_diff = np.abs(
+            data_timestamps[np.clip(insertion_ind - 1, 0, np.inf).astype(int)] - event_timestamps[~outside_range_bool]
+        )
+        event_indices = insertion_ind - (ind_diff > ind_minus_one_diff).astype(int)
+    elif force_side == "left":
+        event_indices = insertion_ind - 1
+    elif force_side == "right":
+        event_indices = insertion_ind
 
     if oob_behavior == "remove":
         return event_indices
