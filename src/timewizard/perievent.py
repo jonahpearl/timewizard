@@ -15,6 +15,7 @@ def perievent_traces(
     ts_err_behav='error',
 ):
     """Get peri-event traces of data.
+    TODO: allow interpolation.
 
     Parameters
     ----------
@@ -108,11 +109,11 @@ def _get_padded_slice(full_trace, s, pad_val=np.nan):
     ----------
     full_trace : array of shape (N,...)
         The data from which to slice the trace. If multi-dimensional, the first axis is the sliced axis.
-    
+
     s : slice of (start, stop)
         A slice object. Negative values imply an intention to get data before the start of the trace,
         rather than typical negative indexing in python.
-    
+
     pad_val : float, default=np.nan
         Value for parts of the trace that don't exist in the full_trace.
 
@@ -155,8 +156,8 @@ def perievent_events(
 ):
     """Get nested list of discrete times that fall within each peri-event window.
 
-        For example, if you have a list of lick times (discrete_timestamps) 
-        and a list of trial start times (event_timestamps), you could use 
+        For example, if you have a list of lick times (discrete_timestamps)
+        and a list of trial start times (event_timestamps), you could use
         this function to get a list of lick times around the start of each trial.
 
     Parameters
@@ -363,7 +364,7 @@ def chunk_events(
 
 
 def map_values(data_timestamps, data_vals, event_timestamps, interpolate=False):
-    """Map values of data to event times.
+    """Map values of data to event times. If interpolating, thin wrapper around scipy's interp1d.
 
     Parameters
     ----------
@@ -379,7 +380,7 @@ def map_values(data_timestamps, data_vals, event_timestamps, interpolate=False):
 
     interpolate : bool, default=False
         If False, use the value at the nearest timestamp.
-        If True, use linear interpolation to estimate values at event times.
+        If True, use interp1d to interpolate between timestamps.
 
     Returns
     --------
@@ -396,21 +397,12 @@ def map_values(data_timestamps, data_vals, event_timestamps, interpolate=False):
         data_timestamps, data_vals, event_timestamps
     )
 
-    if len(data_timestamps) != data_vals.shape[0]:
-        raise ValueError('data_timestamps and data_vals must have the same length!')
+    if data_timestamps.shape[0] != data_vals.shape[0]:
+        raise ValueError('data_timestamps and data_vals must have the same number of timepoints!')
 
     if interpolate:
-        vals = np.zeros_like(event_timestamps).astype('float')
-        nearest_prev_idx = index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior='warn', force_side='left')
-        nearest_subseq_idx = index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior='warn', force_side='right')
-        for iEvt, (prev_idx, subseq_idx) in enumerate(zip(nearest_prev_idx, nearest_subseq_idx)):
-            if prev_idx == -1 or subseq_idx == -1:
-                vals[iEvt] = np.nan
-                continue
-            t = data_timestamps[[prev_idx, subseq_idx]]
-            y = data_vals[[prev_idx, subseq_idx]]
-            f = interp1d(t, y, kind='linear')
-            vals[iEvt] = f(event_timestamps[iEvt])
+        f = interp1d(data_timestamps, data_vals, axis=0, bounds_error=False, fill_value=np.nan)
+        vals = f(event_timestamps)
     else:
         nearest_idx = index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior='warn')
         vals = data_vals[nearest_idx].astype('float')
