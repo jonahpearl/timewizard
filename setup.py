@@ -1,18 +1,16 @@
-import io
-import re
 from glob import glob
 from os.path import basename
-from os.path import dirname
-from os.path import join
 from os.path import splitext
 
 from setuptools import find_packages
 from setuptools import setup
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
 
 setup(
     name='timewizard',
-    version='0.0.0',
+    version='0.1.0',
     license='MIT or Allen Institute Software License',
     description='Your timeseries woes will magically disappear',
     author='Jonah Pearl',
@@ -38,7 +36,5 @@ setup(
         'Issue Tracker': 'https://github.com/jonahpearl/timewizard/issues',
     },
     python_requires='>=3.7',
-    install_requires=[
-        'numpy',
-    ],
+    install_requires=required,
 )
