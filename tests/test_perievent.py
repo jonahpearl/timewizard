@@ -52,7 +52,7 @@ def test_index_of_nearest_value():
     timestamps = np.array([0, 1, 2, 3, 4, 5])
     event_timestamps = np.array([-10, 3.4, 3.5, 3.6, 300])
     answer = np.array([-1, 3, 4, 4, -1])
-    assert np.all(answer == twp.index_of_nearest_value(timestamps, event_timestamps))
+    assert np.all(answer == twp.index_of_nearest_value(timestamps, event_timestamps, oob_behavior='warn'))
 
 
 def test_perievent_events():
