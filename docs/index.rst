@@ -9,8 +9,14 @@ Timewizard
 Timewizard is a Python library that makes it easier to work with timeseries data, especially in the context of neuroscience. 
 
 .. toctree::
+   :caption: Getting Started
+   
    installation
    user_guide
+
+.. toctree::
+   :caption: Tutorials
+
    perievent_tutorial
 
 .. toctree::
