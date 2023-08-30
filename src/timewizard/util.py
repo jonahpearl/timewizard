@@ -152,7 +152,7 @@ def discrete_deriv(arr, fill_value=np.nan, fill_side='right'):
 #     block_min_spacing : int
 #         Minimum time difference between two stim blocks.
 
-        
+
 #     """
 
 def mutually_nearest_pts(t1, t2):
@@ -218,8 +218,8 @@ def mutually_nearest_pts(t1, t2):
 
     # Get initial pairings of groups of times
     # Eg, which times in 1 are nearest each time of 2.
-    idxs_of_1_nearest_to_each_2 = index_of_nearest_value(t1, t2)  # in eg above, (0, 3, 3, 3, ...)
-    idxs_of_2_nearest_to_each_1 = index_of_nearest_value(t2, t1)  # in eg above, (0, 0, 0, 1, ...)
+    idxs_of_1_nearest_to_each_2 = index_of_nearest_value(t1, t2, oob_behavior='warn')  # in eg above, (0, 3, 3, 3, ...)
+    idxs_of_2_nearest_to_each_1 = index_of_nearest_value(t2, t1, oob_behavior='warn')  # in eg above, (0, 0, 0, 1, ...)
 
     # Only take pairs of times which are each other's mutually closest time.
     # You can do this in one line via idx_1_2[idx_2_1] == np.arange(idx_2_1.shape[0]).
