@@ -5,9 +5,6 @@ from os.path import splitext
 from setuptools import find_packages
 from setuptools import setup
 
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
-
 setup(
     name='timewizard',
     version='0.1.0',
@@ -36,5 +33,9 @@ setup(
         'Issue Tracker': 'https://github.com/jonahpearl/timewizard/issues',
     },
     python_requires='>=3.7',
-    install_requires=required,
+    install_requires=[
+        'numpy',
+        'scipy',
+        'fastcluster',
+    ],
 )
