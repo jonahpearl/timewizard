@@ -3,7 +3,7 @@ import warnings
 from scipy.interpolate import interp1d
 
 from . import util as twu
-from .allenbrainobs.obs_utils import index_of_nearest_value, time_to_event
+from .allenbrainobs.obs_utils import index_of_nearest_value, time_to_event, generate_perievent_slices
 
 
 def perievent_traces(
