@@ -163,10 +163,10 @@ def generate_perievent_slices(
 
     Given a relatively continuous time series, generate slices around events in that time series (eg time_window = (-1,5) for from 1 second before to 5 seconds after).
     See also: get_aligned_traces for a nice wrapper around this.
-    
+
     Alternatively, pass event_end_timestamps instead of time_window if each event is a different length.
 
-    NB, to make this play nicely with get_aligned_traces, we make each slice have the same length out, even if 
+    NB, to make this play nicely with get_aligned_traces, we make each slice have the same length out, even if
     it runs over the edge of the data. Eg if your event is 1 with a window of (-2,2), the slice will be slice(-1,3).
     Obviously what you really want here is np.hstack[np.nan, data[slice(0,3)] -- get_aligned_traces performs this internally.
 
@@ -181,7 +181,7 @@ def generate_perievent_slices(
     -----------
     data_timestamps : np.array
         Timestamps of the datatrace.
-    
+
     event_timestamps : np.array
         Timestamps of events around which to slice windows,  in same time base as data.
         If event_end_timestamps is passed, window begins at each event_timestamp.
@@ -189,7 +189,7 @@ def generate_perievent_slices(
     time_window : tuple (must pass either this or event_end_timestamps)
         [start_offset, end_offset] in same time base as data, if passed.
         Eg, [-2, 5] for a window from 2 sec before to 5 sec after.
-    
+
     event_end_timestamps: np.array (must pass either this or time_window)
         End time for each event, if passed.
 
@@ -202,7 +202,7 @@ def generate_perievent_slices(
     --------
     gen:
         A generator object with python slices for each peri-event window
-        
+
 
     """
 
@@ -217,7 +217,7 @@ def generate_perievent_slices(
 
     if sampling_rate:
         # This way takes 1/2 the time because it only calls the indexing function once.
-            
+
         # Check that data is in fact regularly sampled
         ts_diffs = np.diff(data_timestamps)
         if not np.all(np.isclose(ts_diffs, ts_diffs[0], atol=0, rtol=0.01)):
@@ -227,7 +227,7 @@ def generate_perievent_slices(
                 )
             elif behavior_on_non_identical_timestamp_diffs == 'warn':
                 warnings.warn("Passing sampling_rate implies continuous timestamps with identical inter-sample intervals, but diffs are not all equal!")    
-                warnings.warn("Proceed at your own risk, or dont pass sampling_rate!")    
+                warnings.warn("Proceed at your own risk, or dont pass sampling_rate!")
         event_indices = index_of_nearest_value(data_timestamps, event_timestamps)
         start_ind_offset = int(time_window[0] * sampling_rate)
         end_ind_offset = int(time_window[1] * sampling_rate)
@@ -235,7 +235,7 @@ def generate_perievent_slices(
             yield slice(int(event + start_ind_offset), int(event + end_ind_offset))
     else:
         # ...but this way will work with data of varying sampling rate
-        
+
         if time_window is not None:
             start_indices = index_of_nearest_value(
                 data_timestamps, event_timestamps + time_window[0]
@@ -253,7 +253,7 @@ def generate_perievent_slices(
             )
 
         # Deal with any out of bounds issues in the ending timestamps (to avoid s.stop == -1)
-        end_indices[end_indices==-1] = len(data_timestamps)
+        end_indices[end_indices == -1] = len(data_timestamps)
 
         for start, end in zip(start_indices, end_indices):
             yield slice(start, end)
