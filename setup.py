@@ -7,7 +7,7 @@ from setuptools import setup
 
 setup(
     name='timewizard',
-    version='0.1.0',
+    version='0.1.1',
     license='MIT or Allen Institute Software License',
     description='Your timeseries woes will magically disappear',
     author='Jonah Pearl',
