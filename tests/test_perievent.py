@@ -81,10 +81,10 @@ def test_find_perievent_times():
     o = np.array([0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0])
     t = np.arange(o.shape[0])
 
-    i_on, t_on = twp.find_perievent_times(
+    i_on, t_on = twp.event_times_from_train(
         o, t, mode="raw", kind="onsets"
     )
-    i_off, t_off = twp.find_perievent_times(
+    i_off, t_off = twp.event_times_from_train(
         o, t, mode="raw", kind="offsets"
     )
     assert np.all(i_on == np.array([3, 6, 15]))
@@ -92,10 +92,10 @@ def test_find_perievent_times():
     assert np.all(t_on == np.array([3, 6, 15]))
     assert np.all(t_off == np.array([5, 8, 16]))
 
-    i_on, t_on = twp.find_perievent_times(
+    i_on, t_on = twp.event_times_from_train(
         o, t, mode="initial_onset", block_min_spacing=3, kind="onsets"
     )
-    i_off, t_off = twp.find_perievent_times(
+    i_off, t_off = twp.event_times_from_train(
         o, t, mode="initial_onset", block_min_spacing=3, kind="offsets"
     )
     assert np.all(i_on == np.array([3, 15]))
@@ -108,11 +108,11 @@ def test_find_perievent_times_boundaries():
     o = np.array([1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1])
     t = np.arange(o.shape[0])
 
-    i_on, t_on = twp.find_perievent_times(
+    i_on, t_on = twp.event_times_from_train(
         o, t, mode="raw", kind="onsets"
     )
 
-    i_off, t_off = twp.find_perievent_times(
+    i_off, t_off = twp.event_times_from_train(
         o, t, mode="raw", kind="offsets"
     )
 

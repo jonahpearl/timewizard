@@ -1,6 +1,8 @@
 import numpy as np
-import warnings
+import pandas as pd
 from scipy.interpolate import interp1d
+import warnings
+
 
 from . import util as twu
 from .allenbrainobs.obs_utils import index_of_nearest_value, time_to_event, generate_perievent_slices
@@ -221,8 +223,8 @@ def perievent_events(
         return aligned_timestamps
 
 
-def find_perievent_times(
-    data_boolean,
+def event_times_from_train(
+    data_train,
     data_timestamps,
     mode="raw",
     kind="onsets",
@@ -250,9 +252,6 @@ def find_perievent_times(
     block_min_spacing : int, default=None
         Time unit gap required between events if mode is 'initial_onset'.
 
-    custom_onset_times : array-like or None, default=None
-        Custom onset times to filter with block_min_spacing if provided.
-
     Returns
     -------
     tuple of np.array
@@ -268,17 +267,17 @@ def find_perievent_times(
         raise ValueError("block_min_spacing must be provided if mode is 'initial_onset'")
 
     # Check for compatible input data types
-    if data_boolean.dtype == 'bool':
-        data_boolean = data_boolean.astype('int')
-    if np.issubdtype(data_boolean.dtype, np.unsignedinteger):
-        raise TypeError(f'stim_bool is type {data_boolean.dtype} but must be signed in order for diff to work properly!')
-    if np.any(data_boolean < 0):
+    if data_train.dtype == 'bool':
+        data_train = data_train.astype('int')
+    if np.issubdtype(data_train.dtype, np.unsignedinteger):
+        raise TypeError(f'stim_bool is type {data_train.dtype} but must be signed in order for diff to work properly!')
+    if np.any(data_train < 0):
         raise ValueError('stim_bool must be all positive or 0')
 
     # Some sanity checks
-    data_boolean, data_timestamps = twu.castnp(data_boolean, data_timestamps)
-    assert data_boolean.shape[0] == data_timestamps.shape[0]
-    if data_boolean.sum() == 0:
+    data_train, data_timestamps = twu.castnp(data_train, data_timestamps)
+    assert data_train.shape[0] == data_timestamps.shape[0]
+    if data_train.sum() == 0:
         warnings.warn('No stims detected')
         return None, None
 
@@ -288,17 +287,17 @@ def find_perievent_times(
         event_func = lambda stim_bool: np.where(np.diff(stim_bool) > 0)[0] + 1
     elif kind == "offsets":
         event_func = lambda stim_bool: np.where(np.diff(stim_bool) < 0)[0] + 1
-    event_idx = event_func(data_boolean)
+    event_idx = event_func(data_train)
     event_times = data_timestamps[event_idx]
 
     # Catch boundary cases
     # (This is weird in the case that the very final point is an onset -- then it's also an offset?? Ditto if only the very first point is a 1.)
-    if data_boolean[0] == 1 and kind == "onsets":
+    if data_train[0] == 1 and kind == "onsets":
         event_idx = np.hstack([0, event_idx])
         event_times = np.hstack([data_timestamps[0], event_times])
-    elif data_boolean[-1] == 1 and kind == "offsets":
-        print(data_boolean.shape)
-        event_idx = np.hstack([event_idx, data_boolean.shape[0] - 1])
+    elif data_train[-1] == 1 and kind == "offsets":
+        print(data_train.shape)
+        event_idx = np.hstack([event_idx, data_train.shape[0] - 1])
         event_times = np.hstack([event_times, data_timestamps[-1]])
 
     # Chunk detected events if requested
