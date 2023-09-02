@@ -17,7 +17,8 @@ Timewizard is a Python library that makes it easier to work with timeseries data
 .. toctree::
    :caption: Tutorials
 
-   perievent_tutorial
+   perievent
+   event_id
 
 .. toctree::
    :caption: API Reference
