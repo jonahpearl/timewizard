@@ -363,6 +363,114 @@ def chunk_events(
     return (event_times[initial_idx], *(arg[initial_idx] for arg in args))
 
 
+def event_epochs(
+    data_train,
+    data_timestamps,
+    mode="raw",
+    block_min_spacing=None,
+):
+    """Quantifies characteristics (onset, offset, duration, value) of event epochs in a boolean timeseries.
+
+    Parameters:
+    -----------
+    data_train : np.array of shape (N,)
+        Boolean or integer time series representing the presence (1/True) or absence (0/False) of events.
+    data_timestamps : np.array of shape (N,)
+        Timestamps corresponding to the data_train.
+    mode : str, optional (default = "raw")
+        Specifies the event quantification mode:
+        - "raw": Extracts all onsets and offsets as they occur.
+        - "initial_onset": Consolidates events that are spaced closer than `block_min_spacing`.
+    block_min_spacing : float, optional
+        Minimum spacing between event epochs. Only relevant if mode is "initial_onset".
+
+    Returns:
+    --------
+    df : pd.DataFrame of len N
+        DataFrame containing the following columns:
+        - 'onset_index': Index of event onset in data_train.
+        - 'onset_time': Timestamp of event onset.
+        - 'offset_index': Index of event offset in data_train.
+        - 'offset_time': Timestamp of event offset.
+        - 'duration': Duration of the event.
+        - 'value': Value of the event at the onset (usually 1 for boolean series).
+
+    Raises:
+    -------
+    ValueError, TypeError, AssertionError
+        Various input checks to ensure data integrity.
+    """
+
+    # Check kwargs
+    if mode not in ["raw", "initial_onset"]:
+        raise ValueError("mode must be 'raw' or 'initial_onset'")
+    if mode == 'initial_onset' and block_min_spacing is None:
+        raise ValueError("block_min_spacing must be provided if mode is 'initial_onset'")
+
+    # Check for compatible input data types
+    if data_train.dtype == 'bool':
+        data_train = data_train.astype('int')
+    if np.issubdtype(data_train.dtype, np.unsignedinteger):
+        raise TypeError(f'stim_bool is type {data_train.dtype} but must be signed in order for diff to work properly!')
+    if np.any(data_train < 0):
+        raise ValueError('stim_bool must be all positive or 0')
+
+    # Some sanity checks
+    data_train, data_timestamps = twu.castnp(data_train, data_timestamps)
+    assert data_train.shape[0] == data_timestamps.shape[0]
+    if data_train.sum() == 0:
+        warnings.warn('No stims detected')
+        return None, None
+
+    # Get onsets (or offsets)
+    onset_idx, onset_times = event_times_from_train(
+        data_train,
+        data_timestamps,
+        kind="onsets",
+    )
+
+    # Get offsets (or onsets)
+    offset_idx, offset_times = event_times_from_train(
+        data_train,
+        data_timestamps,
+        kind="offsets",
+    )
+
+    # In order to chunk events correctly, need to jointly consider onsets and offsets
+    # If the spacing between a given offset and the next onset is less than block_min_spacing, then we need to remove that offset
+    if mode == 'initial_onset':
+
+        # Get spacing between offsets and onsets
+        offset_to_next_onset_spacing = onset_times[1:] - offset_times[:-1]
+
+        # Find offsets that are too close to the next onset
+        tmp_mask = offset_to_next_onset_spacing < block_min_spacing
+        offsets_mask = np.concatenate([~tmp_mask, [True]])  # always keep last offset
+        onsets_mask = np.concatenate([[True], ~tmp_mask])  # always keep first onset
+
+        # Remove those offsets and their corresponding subsequent onsets
+        offset_idx = offset_idx[offsets_mask]
+        offset_times = offset_times[offsets_mask]
+        onset_idx = onset_idx[onsets_mask]
+        onset_times = onset_times[onsets_mask]
+
+    # Get durations
+    durations = offset_times - onset_times
+
+    # Get values
+    values = data_train[onset_idx]
+
+    df = pd.DataFrame({
+        'onset_index': onset_idx,
+        'onset_time': onset_times,
+        'offset_index': offset_idx,
+        'offset_time': offset_times,
+        'duration': durations,
+        'value': values,
+    })
+    return df
+
+
 def map_values(data_timestamps, data_vals, event_timestamps, interpolate=False):
     """Map values of data to event times. If interpolating, thin wrapper around scipy's interp1d.
 
