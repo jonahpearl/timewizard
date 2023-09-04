@@ -33,14 +33,14 @@ myst_enable_extensions = [
 ]
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'requirements.txt']
 source_suffix = {
     '.rst': 'restructuredtext',
     '.txt': 'restructuredtext',
     '.md': 'markdown',
     ".ipynb": "myst-nb"
 }
-jupyter_execute_notebooks = "off"
+nb_execution_mode = "off"
 
 autodoc_default_options = {
     "autosummary": True,
