@@ -37,5 +37,6 @@ setup(
         'numpy',
         'scipy',
         'fastcluster',
+        'pandas',
     ],
 )

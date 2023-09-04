@@ -1,5 +1,8 @@
 # Configuration file for the Sphinx documentation builder.
-#
+
+import os
+import sys
+
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
@@ -37,6 +40,7 @@ source_suffix = {
     '.md': 'markdown',
     ".ipynb": "myst-nb"
 }
+jupyter_execute_notebooks = "off"
 
 autodoc_default_options = {
     "autosummary": True,
@@ -62,6 +66,4 @@ autodoc_typehints = "description"
 autodoc_member_order = "bysource"
 
 # trying to fix rtd...
-import os
-import sys
 sys.path.insert(0, os.path.abspath('../src'))
