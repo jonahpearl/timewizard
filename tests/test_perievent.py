@@ -33,6 +33,35 @@ def test_perievent_traces():
     assert traces.shape == (3, 20)
 
 
+def test_get_padded_slice():
+    # fs = 4
+    t = np.arange(0, 10)
+    # data = np.random.random(10)
+    # evts = [0.1, 6]
+    # window = [-0.25, 0.25]
+    trace = twp._get_padded_slice(t, slice(-2, 2))
+    assert np.allclose(trace, np.array([np.nan, np.nan, 0, 1]), equal_nan=True)
+
+
+def test_get_perievent_traces():
+    # Tests boundary handling and padding
+
+    # Make some fake signal with something to see
+    np.random.seed(2)
+    fs = 4
+    t = np.arange(0, 1000, 1 / fs)
+    window = (-2, 4)
+    event_times = np.array([0, 100, 400, 600])  # requested window for first event will be before bounds of data
+    signal = np.zeros_like(t, dtype='float')
+    for t0 in event_times:
+        _slice = slice(int(t0 * fs), int(t0 * fs + (window[1] - 1) * fs))
+        signal[_slice] += np.random.normal(0, 3, size=((window[1] - 1) * fs))
+    event_times = np.hstack([event_times, 998])  # purposely add an event that will extend after the bounds of the data
+
+    # Get aligned traces
+    _, _ = twp.perievent_traces(t, signal, event_times, time_window=window, fs=fs)
+
+
 def test_get_perievent_traces_multidim():
     timestamps = np.arange(4)
     data = np.arange(4**4).reshape((4, 4, 4, 4))
@@ -148,3 +177,7 @@ def test_map_values():
     ans = twp.map_values(t, vals, evt_times, interpolate=True)
     expected = np.array([np.nan, 6, 7, 13.4, np.nan])
     assert np.allclose(ans, expected, equal_nan=True)
+
+
+# if __name__ == "__main__":
+#     test_get_perievent_traces()

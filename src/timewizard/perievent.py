@@ -3,7 +3,6 @@ import pandas as pd
 from scipy.interpolate import interp1d
 import warnings
 
-
 from . import util as twu
 from .allenbrainobs.obs_utils import index_of_nearest_value, time_to_event, generate_perievent_slices
 
@@ -135,15 +134,15 @@ def _get_padded_slice(full_trace, s, pad_val=np.nan):
     trace_len = s.stop - s.start
     if (s.start > full_trace.shape[0]):
         new_size = (trace_len, *full_trace.shape[1:])
-        trace = np.empty(new_size).fill(pad_val)
+        trace = np.full(new_size, pad_val)
     elif s.start < 0:
         n_left_pad = -1 * s.start
         pad_size = (n_left_pad, *full_trace.shape[1:])
-        trace = np.hstack([np.empty(pad_size).fill(pad_val), full_trace[0:s.stop]])
+        trace = np.hstack([np.full(pad_size, pad_val), full_trace[0:s.stop]])
     elif s.stop > full_trace.shape[0]:
         n_right_pad = s.stop - full_trace.shape[0]
         pad_size = (n_right_pad, *full_trace.shape[1:])
-        trace = np.hstack([full_trace[s], np.empty(pad_size).fill(pad_val)])
+        trace = np.hstack([full_trace[s], np.full(pad_size, pad_val)])
     else:
         trace = full_trace[s]
     return trace
