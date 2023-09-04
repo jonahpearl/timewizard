@@ -38,5 +38,6 @@ setup(
         'scipy',
         'fastcluster',
         'pandas',
+        'matplotlib',
     ],
 )
