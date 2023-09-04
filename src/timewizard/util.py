@@ -1,5 +1,6 @@
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
 from .allenbrainobs.obs_utils import index_of_nearest_value
@@ -312,3 +313,45 @@ def get_dict_map_np(my_dict):
     assert np.allclose(sq, d_vec(seq))
     """
     return np.vectorize(my_dict.get)
+
+
+def xticks_from_timestamps(timestamps, window=None, ax=None, calculate_only=False, interval=1):
+    """Generate xticks for a heatmap, from the corresponding timestamps (ie cols)
+
+    Arguments:
+        timestamps {np.array} -- timestamps for the columns (x-axis) of the heatmap
+
+    Keyword Arguments:
+        window {tuple} -- optional window to use for timestamps (default: {None})
+        ax {plt axis} -- option ax object, otherwise uses plt.xticks (default: {None})
+        calculate_only {bool} -- if True, returns values without setting (default: {False})
+        interval {int} -- desired interval in units of timestamps for tick spacing (default: {1})
+
+    Returns:
+        [type] -- [description]
+
+    Example:
+        data = np.random.normal(0, 1, size=(10,41))
+        ts = np.arange(-2,2.01,0.1)
+        plt.imshow(data)
+        moseq_fo.viz.xticks_from_timestamps(ts, interval=0.5)
+
+    """
+    if window:
+        timestamps = timestamps[window[0] : window[1]]
+    range_ = timestamps[-1] - timestamps[0]  # num seconds
+    by = np.floor(timestamps.shape[0] / range_ * interval).astype("int")  # num (interval)-ths of seconds
+    offset = int(index_of_nearest_value(timestamps, 0) % by)
+    locs = np.arange(offset, timestamps.shape[0], by)
+    labs = round_to_multiple(timestamps[offset::by], interval)
+
+    if calculate_only:
+        return locs, labs
+
+    if ax:
+        ax.set_xticks(locs)
+        ax.set_xticklabels(labs)
+    else:
+        plt.xticks(ticks=locs, labels=labs)
+
+    return locs, labs
