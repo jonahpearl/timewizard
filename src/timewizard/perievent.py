@@ -87,7 +87,10 @@ def perievent_traces(
             data_timestamps, event_timestamps, time_window, sampling_rate=fs, behavior_on_non_identical_timestamp_diffs=ts_err_behav
         )
         for iSlice, s in enumerate(g):
-            traces[iSlice, :] = _get_padded_slice(data_vals, s)
+            if s is not None:
+                traces[iSlice, :] = _get_padded_slice(data_vals, s)
+            elif s is None:
+                traces[iSlice, :] = np.nan
     else:
         if data_vals.ndim > 1:
             raise NotImplementedError("Multi dim for data_values and no fs not implemented yet...use nested lists!")

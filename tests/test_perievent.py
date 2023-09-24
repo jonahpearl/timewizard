@@ -8,11 +8,27 @@ def test_issorted():
     assert twu.issorted(np.arange(10))
     assert not twu.issorted(np.array([0, 1, 2, 1]))
 
+def test_perievent_traces_outliers():
+    timestamps = np.linspace(0, 100, 1001)
+    data = np.sin(timestamps)
+    event_timestamps = np.array([-100, 20, 30, 50, 1000])
+    time_window = [-1, 1]
+    start_idx = np.where(timestamps == 19)[0][0]
+    end_idx = np.where(timestamps == 21)[0][0]
+
+    _, traces = twp.perievent_traces(
+        timestamps, data, event_timestamps, time_window, fs=10
+    )
+    assert np.all(np.isnan(traces[0,:]))
+    assert np.all(np.isnan(traces[4,:]))
+    np.testing.assert_allclose(traces[1, :], data[start_idx:end_idx])
+    assert traces.shape == (5, 20)
+
 
 def test_perievent_traces():
     timestamps = np.linspace(0, 100, 1001)
     data = np.sin(timestamps)
-    event_timestamps = np.array([20, 30, 50])
+    event_timestamps = np.array([20, 30, 50,])
     time_window = [-1, 1]
     start_idx = np.where(timestamps == 19)[0][0]
     end_idx = np.where(timestamps == 21)[0][0]

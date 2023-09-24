@@ -228,11 +228,15 @@ def generate_perievent_slices(
             elif behavior_on_non_identical_timestamp_diffs == 'warn':
                 warnings.warn("Passing sampling_rate implies continuous timestamps with identical inter-sample intervals, but diffs are not all equal!")    
                 warnings.warn("Proceed at your own risk, or dont pass sampling_rate!")
-        event_indices = index_of_nearest_value(data_timestamps, event_timestamps)
+        event_indices = index_of_nearest_value(data_timestamps, event_timestamps, oob_behavior='warn')
         start_ind_offset = np.round(time_window[0] * sampling_rate).astype('int')
         end_ind_offset = np.round(time_window[1] * sampling_rate).astype('int')
         for event in event_indices:
-            yield slice(int(event + start_ind_offset), int(event + end_ind_offset))
+            if event == -1:
+                # If event is outside range of the data, skip it
+                yield None
+            else:
+                yield slice(int(event + start_ind_offset), int(event + end_ind_offset))
     else:
         # ...but this way will work with data of varying sampling rate
 
@@ -246,14 +250,17 @@ def generate_perievent_slices(
 
         elif event_end_timestamps is not None:
             start_indices = index_of_nearest_value(
-                data_timestamps, event_timestamps
+                data_timestamps, event_timestamps, oob_behavior='warn'
             )
             end_indices = index_of_nearest_value(
-                data_timestamps, event_end_timestamps
+                data_timestamps, event_end_timestamps, oob_behavior='warn'
             )
 
-        # Deal with any out of bounds issues in the ending timestamps (to avoid s.stop == -1)
-        end_indices[end_indices == -1] = len(data_timestamps)
+        # # Deal with any out of bounds issues in the ending timestamps (to avoid s.stop == -1)
+        # end_indices[end_indices == -1] = len(data_timestamps)
 
         for start, end in zip(start_indices, end_indices):
-            yield slice(start, end)
+            if (start == -1) or (end == -1):
+                yield None
+            else:
+                yield slice(start, end)
