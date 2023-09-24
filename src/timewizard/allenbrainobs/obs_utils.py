@@ -229,8 +229,8 @@ def generate_perievent_slices(
                 warnings.warn("Passing sampling_rate implies continuous timestamps with identical inter-sample intervals, but diffs are not all equal!")    
                 warnings.warn("Proceed at your own risk, or dont pass sampling_rate!")
         event_indices = index_of_nearest_value(data_timestamps, event_timestamps)
-        start_ind_offset = int(time_window[0] * sampling_rate)
-        end_ind_offset = int(time_window[1] * sampling_rate)
+        start_ind_offset = np.round(time_window[0] * sampling_rate).astype('int')
+        end_ind_offset = np.round(time_window[1] * sampling_rate).astype('int')
         for event in event_indices:
             yield slice(int(event + start_ind_offset), int(event + end_ind_offset))
     else:

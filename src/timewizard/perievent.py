@@ -78,10 +78,10 @@ def perievent_traces(
             warnings.warn(
                 "Provided sampling rate is less than 1 Hz -- did you accidentally provide the sampling period? (ie 1/rate?)"
             )
-        start_ind_offset = int(time_window[0] * fs)
-        end_ind_offset = int(time_window[1] * fs)
+        start_ind_offset = np.round(time_window[0] * fs).astype('int')
+        end_ind_offset = np.round(time_window[1] * fs).astype('int')
         traces = np.zeros((len(event_timestamps), (end_ind_offset - start_ind_offset), *data_vals.shape[1:]))
-        times = np.arange(time_window[0], time_window[1], 1 / fs)
+        times = np.linspace(time_window[0], time_window[1], traces.shape[1])
         assert times.shape[0] == traces.shape[1]
         g = generate_perievent_slices(
             data_timestamps, event_timestamps, time_window, sampling_rate=fs, behavior_on_non_identical_timestamp_diffs=ts_err_behav
